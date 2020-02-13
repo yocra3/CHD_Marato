@@ -1,7 +1,16 @@
-## Exclude all files 
-/*
+## Exclude R project files
+.Rproj.user
+.Rhistory
+.RData
+*.Rproj
 
-## Include only files in scripts and workflows folder
-!/scripts/
-!/workflows/
-!.gitignore
+## Exclude nextflow files
+.nextflow*
+work/
+
+## Exclude folders with data
+data/
+docs/
+results/
+
+
