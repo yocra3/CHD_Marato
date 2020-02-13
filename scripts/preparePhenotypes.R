@@ -94,7 +94,7 @@ batch2$SampleID <- gsub("-| ", "", batch2$Etiqueta)
 
 pheno$SampleBatch <- ifelse(pheno$SampleID %in% batch1$SampleID, "VHIR1",
                             ifelse(pheno$SampleID %in% batch2$SampleID, "VHIR2",
-                                   ifelse(grepl( "Mallorca", pheno$SampleID), "Mallorca", "Lab")))
+                                   ifelse(!grepl("CO$", pheno$SampleID), "Mallorca", "Lab")))
 
 ## Create final object with created variables
 finalVars <- c("SampleID", "Sex", "GestAge", "Status", "pathGroup", "GeneticCause", "Gene", "SampleBatch")
