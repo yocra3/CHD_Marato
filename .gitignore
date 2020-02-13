@@ -1,0 +1,7 @@
+## Exclude all files 
+/*
+
+## Include only files in scripts and workflows folder
+!/scripts/
+!/workflows/
+!.gitignore

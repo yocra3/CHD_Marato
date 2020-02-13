@@ -22,3 +22,4 @@ mkdir results/methylation/finalQC_files
 mkdir results/methylation/SNPs
 
 mkdir scripts
+mkdir workflows
