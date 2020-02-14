@@ -1,0 +1,165 @@
+---
+title: "Samples descriptives"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+load("../results/phenotypes/v1/pheno.Rdata")
+
+getSum <- function(vec, type = "continuous"){
+  if (type == "continuous"){
+    c(median = median(vec, na.rm = TRUE), 
+      range = quantile(vec, probs = c(0.25, 0.75), na.rm = TRUE))
+  } else if (type == "categorical"){
+    t <- table(vec)
+    data.frame(Categories = names(t),  N = as.vector(t), 
+               Percentage = sprintf("%.2f", as.vector(prop.table(t)*100)))
+  }
+}
+```
+
+# Whole population
+
+This section describes the general features of our whole population.
+
+## Sex
+
+```{r}
+getSum(pheno$Sex, type = "categorical")
+```
+
+Overall, we have a balanced number of males and females.
+
+## Gestational age
+
+Gestational age is measured in weeks.
+
+```{r}
+getSum(pheno$GestAge, type = "continuous")
+```
+
+The median gestational age of our samples is 21 weeks (IQR: 20-22).
+
+## Status
+
+```{r}
+getSum(pheno$Status, type = "categorical")
+```
+
+We have 41 cases and 5 controls (10%).
+
+## CHD group
+
+Cases can be divided in 4 groups:
+- G1: Cases with Di George Syndrome
+- G2: Cases with conontruncal malformations
+- G4: Cases with Hypoplasic Left Heart Syndrome (HLHS)
+- G5: Cases with other cardiac malformations
+
+```{r}
+getSum(pheno$pathGroup, type = "categorical")
+```
+
+Most frequent groups are G2 (conontruncal malformations) and G4 (HLHS). G3 have very few samples to be considered an independent group.
+
+## Genetic Cause
+
+```{r}
+getSum(pheno$GeneticCause, type = "categorical")
+```
+
+For 18 case samples, we have an identified genetic cause (either a mutation from WGS or Del22q).
+
+## Sample Batch
+
+Samples were incorporated to the study in different batches. VHIR1 and VHIR2 are to different batches of samples from VHIR biobank. Lab are samples previously available in the lab while Mallorca are two samples from Mallorca biobank.
+
+```{r}
+getSum(pheno$SampleBatch, type = "categorical")
+```
+
+Most of the samples come from VHIR1, reinforcing the possibility of running a sensitivity analysis.
+
+# Correlation with case/control
+
+## Sex
+```{r}
+table(pheno$Sex, pheno$Status)
+
+ggplot(pheno, aes(x = Sex, fill = Sex)) +
+  geom_bar() +
+  facet_grid(~  Status)
+```
+
+Case samples are gender-balanced, but control samples are biased to females (4 females vs 1 male).
+
+
+## Gestational age
+```{r}
+res <- tapply(pheno$GestAge, pheno$Status,  getSum, type = "continuous")
+df <- Reduce(cbind, res)
+colnames(df) <- names(res)
+print(df)
+
+ggplot(pheno, aes(x = Status, y = GestAge)) +
+  geom_boxplot()
+```
+
+
+There is a big difference in gestational age between cases and controls. Most cases have more than 20 weeks while all controls are below 18 weeks.
+
+## Sample Batch
+```{r}
+table(pheno$SampleBatch, pheno$Status)
+
+ggplot(pheno, aes(x = SampleBatch, fill = SampleBatch)) +
+  geom_bar() +
+  facet_grid(~  Status)
+```
+
+All control samples come from VHIR1 batch. 
+
+# Correlation with CHD groups
+
+## Sex
+```{r}
+table(pheno$Sex, pheno$pathGroup)
+
+ggplot(pheno, aes(x = Sex, fill = Sex)) +
+  geom_bar() +
+  facet_grid(~  pathGroup)
+```
+
+CHD groups are gender-biased. Thus, in groups G2 and G4 we find more males than females while in G5 we found more females. 
+
+## Gestational age
+```{r}
+res <- tapply(pheno$GestAge, pheno$pathGroup,  getSum, type = "continuous")
+df <- Reduce(cbind, res)
+colnames(df) <- names(res)
+print(df)
+
+ggplot(pheno, aes(x = pathGroup, y = GestAge)) +
+  geom_boxplot()
+```
+
+We do not observe differences in gestational age between the CHD groups.
+
+## Sample Batch
+```{r}
+table(pheno$SampleBatch, pheno$pathGroup)
+```
+
+CHD groups are highly correlated with recruitment batches. Thus, G5 from VHIR2 and G2 and G5 from VHIR1 and Lab. 

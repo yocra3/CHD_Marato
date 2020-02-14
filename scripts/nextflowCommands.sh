@@ -6,4 +6,4 @@
 #'#################################################################################
 
 ## Prepare phenotypes
-nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf -with-docker yocra3/rsession_chd_marato:1.2.2 --version v1
+nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf -with-docker yocra3/rsession_chd_marato:release-1.2.2 --version v1

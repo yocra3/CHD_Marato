@@ -3,6 +3,7 @@
 .Rhistory
 .RData
 *.Rproj
+*.html
 
 ## Exclude nextflow files
 .nextflow*
