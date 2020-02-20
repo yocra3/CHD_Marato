@@ -2,7 +2,6 @@
  * Extract SNPs present in Illumina 450K from WGS data
  */
 
-
 // Override baseDir from nextflow repository to current directory
 baseDir = "$PWD"
 date = java.time.LocalDate.now()
