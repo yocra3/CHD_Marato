@@ -175,7 +175,7 @@ process processPhenotypes {
 
     """
     cut -f23,30 ${sampleTab} | tail -n +2 | awk '{print \$1, \$1, \$2, \$2}' > sample.map
-    sed -i 's/_//g' sample.map
+    sed -i 's/-//g' sample.map
     plink --vcf ${annotVcf} --make-bed --out genos
     plink -bfile genos --update-ids sample.map --recodeA --out genos
     echo "$logText" > log.txt
