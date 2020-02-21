@@ -46,7 +46,7 @@ process convertToSNP {
   file("decomposed.vcf") into decom
 
   """
-  /home/SHARED/Software/vt/vt  decompose_blocksub $vcf -o decomposed.vcf
+  vt  decompose_blocksub $vcf -o decomposed.vcf
   """
 }
 
