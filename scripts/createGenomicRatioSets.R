@@ -24,7 +24,8 @@ library(minfi)
 load(gsetfile)
 grAnnot <- readRDS(manifest)
 
-
+## Remove technical duplicate
+gset <- gset[, colnames(gset) != "G2CS12COBIS"]
 save(gset, file = "gset.allProbes.Rdata")
 
 ### Probes not measuring methylation
