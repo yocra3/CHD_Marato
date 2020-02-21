@@ -11,19 +11,19 @@ params.inFold = baseDir
 workflowInfo = """
 Project : $workflow.projectDir
 Nextflow version: $nextflow.version - build: $nextflow.build
-Date: $nextflow.timestamp
+Date: $date
 Git info: $workflow.repository - $workflow.revision [$workflow.commitId]
 Cmd line: $workflow.commandLine
 """
 
 
 process processPhenotypes {
-   	publishDir params.outdir, mode: 'copy'  
-    
+   	publishDir params.outdir, mode: 'copy'
+
    	if ( params.version != null ){
-   		publishDir "results/phenotypes/${params.version}", mode: 'copy' 
+   		publishDir "results/phenotypes/${params.version}", mode: 'copy'
    	}
-     
+
    	input:
    	path inFold from "${params.inFold}"
    	val logText from "$workflowInfo"
@@ -39,4 +39,3 @@ process processPhenotypes {
     echo "$logText" > log.txt
     """
 }
-

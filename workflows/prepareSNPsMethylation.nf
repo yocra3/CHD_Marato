@@ -12,7 +12,7 @@ params.vcfref = "/home/SHARED/DATA/REFERENCES/hg19/hg19/All_20180418.vcf.gz" //D
 
 // Select containers
 container_ubuntu = 'yocra3/ubuntu_genomicutils:0.99.1'
-container_R = 'yocra3/rsession_chd_marato:release-1.2.2'
+container_R = 'yocra3/rsession_chd_marato:release-1.2.3'
 
 /*
  * Convert parameters with strings to files
@@ -24,7 +24,7 @@ sampleAnnot = file(params.sampleAnnot)
 workflowInfo = """
 Project : $workflow.projectDir
 Nextflow version: $nextflow.version - build: $nextflow.build
-Date: $nextflow.timestamp
+Date: $date
 Git info: $workflow.repository - $workflow.revision [$workflow.commitId]
 Cmd line: $workflow.commandLine
 """

@@ -4,6 +4,7 @@
 .RData
 *.Rproj
 *.html
+*.md
 
 ## Exclude nextflow files
 .nextflow*
