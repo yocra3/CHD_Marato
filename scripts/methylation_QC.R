@@ -112,8 +112,10 @@ save(qc.summary, file = "qcsummary.clean.Rdata")
 #'#################################################################################
 
 ## Report filtered samples and probes
-write.table(outlier, file = "removed.samples.txt", quote = FALSE, row.names = FALSE)
-write.table(qc.summary$bad.cpgs, file = "removed.probes.txt", quote = FALSE, row.names = FALSE)
+write.table(outlier, file = "removed.samples.txt", quote = FALSE, row.names = FALSE,
+            sep = "\t")
+write.table(qc.summary$bad.cpgs, file = "removed.probes.txt", quote = FALSE, row.names = FALSE,
+            sep = "\t")
 
 ## Run functional normalization ####
 #'#################################################################################
