@@ -10,7 +10,7 @@ nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf -with-docker yocra3
 
 ## Get SNPs from WGS present in methylation data
 nextflow run  yocra3/CHD_Marato/workflows/prepareSNPsMethylation.nf --inFold data/ExomeVCFs \
---sampleAnnot data/CHD_marato_sampleSummary.tab --with-docker --version v1
+--sampleAnnot data/CHD_marato_sampleSummary.tab -with-docker --version v1
 
 ## QC and normalization of methylation data
 nextflow run yocra3/CHD_Marato/workflows/methylation_QC_normalization.nf --inFold "./data/methylation/" \

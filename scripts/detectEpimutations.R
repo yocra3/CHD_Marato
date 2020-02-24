@@ -27,13 +27,8 @@ model <- model.matrix(~ samp, pdata)
 ## Run bumphunter
 bumps <- bumphunter(gset, model, cutoff = 0.1)$table
 
-if (is.na(bumps) || nrow(bumps) == 0){
-  bumps <- data.frame(matrix(ncol = 11, nrow = 1))
-  colnames(bumps) <- c("chr", "start", "end", "value", "area", "cluster", "indexStart", "indexEnd", "L", "clusterL", "Anova")
-  bumps$sample <- sample
-  bumps.final <- bumps.sel <- bumps 
-} else {
-  
+if (!is.na(bumps)) {
+
   bumps$sample <- sample
   
   ## Select bumps with at least 5 cpgs
@@ -48,8 +43,11 @@ if (is.na(bumps) || nrow(bumps) == 0){
   }
   bumps.sel$Anova <- sapply(seq_len(nrow(bumps.sel)), getFstatAnova)
   
+  write.table(bumps.sel, file = "all_bumps.txt", col.names = FALSE, row.names = FALSE,
+              sep = "\t", quote = FALSE)
+
   ## Select bumps with anova higher than 40
   bumps.final <- subset(bumps.sel, Anova > 40)
+  write.table(bumps.final, file = "sel_bumps.txt", col.names = FALSE, row.names = FALSE,
+              sep = "\t", quote = FALSE)
 }
-
-save(bumps.final, bumps.sel, file = "bumps.Rdata")

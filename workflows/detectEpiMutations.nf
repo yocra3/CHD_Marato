@@ -46,9 +46,12 @@ process runEpimutations {
   file(gset) from gset
 
   output:
-  file("bumps.Rdata") into bumps
+  file("all_bumps.txt") into allbumps
+  file("sel_bumps.txt") into selbumps
 
   """
+  touch all_bumps.txt
+  touch sel_bumps.txt
   Rscript $baseDir/scripts/detectEpimutations.R $gset $sample
   """
 
@@ -63,16 +66,18 @@ process mergeBumps {
   }
 
   input:
-  file("bumps*.Rdata") from bumps.toList()
+  file("all_bumps*.txt") from allbumps.toList()
+  file("sel_bumps*.txt") from selbumps.toList()
   val logText from "$workflowInfo"
 
   output:
-  file("bumps.combined.Rdata") into bumpsR
-  file("bumps.combined.txt") into bumpsText
+  file("bumpsAll.txt") into bumpsall
+  file("bumpsSel.txt") into bumpsfilt
   file 'log.txt' into logCh
 
   """
-  Rscript $baseDir/scripts/mergeEpimutations.R bumps*.Rdata
+  cat all_bumps*.txt >> bumpsAll.txt
+  cat sel_bumps*.txt >> bumpsSel.txt
   echo "$logText" > log.txt
   """
 }
