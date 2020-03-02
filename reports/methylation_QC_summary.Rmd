@@ -1,5 +1,5 @@
 ---
-title: "Samples descriptives"
+title: "Methylation QC"
 author: "Carlos Ruiz"
 date: "`r Sys.Date()`"
 output:
@@ -40,7 +40,7 @@ samps <- read.delim(paste0(QC_folder, "/removed.samples.txt"))
 samps
 ```
 
-Only one sample was excluded at this point, due to a deviation in the ratio between median methylated signal and median unmethylated signals. When repeating the QC without this sample, no other samples was removed.
+Only one sample was excluded at this point, due to a deviation in the ratio between median methylated signal and median unmethylated signals. When repeating the QC without this sample, no other samples were removed.
 
 # Probes quality control
 
@@ -53,7 +53,7 @@ The second step was filtering out probes with bad quality. To this end, we run Q
 probes <- read.delim(paste0(QC_folder, "/removed.probes.txt"), sep = "\t")
 ```
 
-`r nrow(probes)` were discarded in this point: `r sum(probes$issue == "Low bead number")` probes due to a low bead number and `r sum(probes$issue == "Detection p-value")` due to low call rate. 
+`r nrow(probes)` probes were discarded in this point: `r sum(probes$issue == "Low bead number")` probes due to a low bead number, `r sum(probes$issue == "Detection p-value")` due to low call rate and `r sum(probes$issue == "Detection p-value, Low bead number")` probes failed both criteria.
 
 
 # Data normalization
@@ -64,7 +64,7 @@ Once we excluded samples and probes with bad quality, we performed normalization
 
 ## Correlation between technical duplicates
 
-In our dataset, we had a sample with a technical duplicate (G2CS12CO). We evaluated whether the methylation values of these two samples were more similar than the rest of methylation values. To do use, we used a centered correlation.
+In our dataset, we had a sample with a technical duplicate (G2CS12CO). We evaluated whether the methylation values of these two samples were more similar than the rest of methylation values. To do so, we used a centered correlation.
 
 ```{r}
 load(paste0(QC_folder, "/norm.beta.Rdata"))
@@ -81,13 +81,11 @@ The distribution of the centered correlations in our population is centered at 0
 
 We explored which factors are correlated with global methylation patterns. To this end, we correlated different variables with the 5 first principal components of methylation. The variables we tested were:
 
-batch_var <- c("Slide", "Array", "Sex", "GestAge", "Status", "pathGroup", "GeneticCause", "SampleBatch")
-
 - Technical. These variables are related with the DNA methylation experiment: Slide, Array position.
 - Phenotypic. These variables are related with the samples: Sex and gestational age.
-- Design. These variables are related with our experimental design: Status, CHD group and sample Batch.
+- Design. These variables are related with our experimental design: Status, CHD group, known genetic cause and sample Batch.
 
-None of the first 5 Principal components was associated with any of the technical variables, suggesting that normalization has removed technical noise. Of the phenotypic variables, gestational age was correlated with components 1 to 4, while sex was not correlated. Design variables had a strong influence in overall methylation patterns. The strongest variable was sample batch, which was correlated with components 1, 2 and 5. Then, we had case/control status (components 3 and 4) and pathological group (component 4). Finally, we observed that having a genetic cause was correlated with component 1. Full results of this exploration are available in meffil_v1_2020-02-21_normalization.html. 
+None of the first 5 Principal components was associated with any of the technical variables, suggesting that normalization has removed technical noise. Of the phenotypic variables, gestational age was correlated with components 1 to 4, while sex was not correlated. Design variables had a strong influence in overall methylation patterns. The strongest variable was sample batch, which was correlated with components 1, 2 and 5. Then, we had case/control status (components 3 and 4) and CHD group (component 4). Finally, we observed that having a genetic cause was correlated with component 1. Full results of this exploration are available in meffil_v1_2020-02-21_normalization.html. 
 
 All in all, these results recommend to run a sensitivity analysis only including samples from batch VHIR1, in order to remove possible confounding due to this variable. 
 

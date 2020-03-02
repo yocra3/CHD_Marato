@@ -8,7 +8,7 @@ date = java.time.LocalDate.now()
 params.outdir = "results/methylation/SNPs/${date}"
 params.sampleAnnot = baseDir
 params.inFold = baseDir
-params.vcfref = "/home/SHARED/DATA/REFERENCES/hg19/hg19/All_20180418.vcf.gz" //Downloaded from ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz
+params.vcfref = "/home/SHARED/DATA/REFERENCES/GRCh37/SNP_annotation/All_20180418.vcf.gz" //Downloaded from ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz
 
 // Select containers
 container_ubuntu = 'yocra3/ubuntu_genomicutils:0.99.1'

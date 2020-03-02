@@ -63,16 +63,17 @@ We have 41 cases and 5 controls (10%).
 ## CHD group
 
 Cases can be divided in 4 groups:
-- G1: Cases with Di George Syndrome
-- G2: Cases with conontruncal malformations
-- G4: Cases with Hypoplasic Left Heart Syndrome (HLHS)
-- G5: Cases with other cardiac malformations
+
+* G1: Cases with Di George Syndrome
+* G2: Cases with conontruncal malformations
+* G4: Cases with Hypoplasic Left Heart Syndrome (HLHS)
+* G5: Cases with other cardiac malformations
 
 ```{r}
 getSum(pheno$pathGroup, type = "categorical")
 ```
 
-Most frequent groups are G2 (conontruncal malformations) and G4 (HLHS). G3 have very few samples to be considered an independent group.
+Most frequent groups are G2 (conontruncal malformations) and G4 (HLHS). G5 have very few samples to be considered an independent group.
 
 ## Genetic Cause
 
@@ -84,7 +85,7 @@ For 18 case samples, we have an identified genetic cause (either a mutation from
 
 ## Sample Batch
 
-Samples were incorporated to the study in different batches. VHIR1 and VHIR2 are to different batches of samples from VHIR biobank. Lab are samples previously available in the lab while Mallorca are two samples from Mallorca biobank.
+Samples were incorporated to the study in different batches. VHIR1 and VHIR2 are two different batches of samples from VHIR biobank. Lab are samples previously available in the lab while Mallorca are two samples from Mallorca biobank.
 
 ```{r}
 getSum(pheno$SampleBatch, type = "categorical")
@@ -162,4 +163,4 @@ We do not observe differences in gestational age between the CHD groups.
 table(pheno$SampleBatch, pheno$pathGroup)
 ```
 
-CHD groups are highly correlated with recruitment batches. Thus, G5 from VHIR2 and G2 and G5 from VHIR1 and Lab. 
+CHD groups are highly correlated with recruitment batches. Thus, all G5 samples come from VHIR2 while G2 and G4 samples come from VHIR1 and Lab. 

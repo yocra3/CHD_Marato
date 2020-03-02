@@ -11,6 +11,7 @@
 mkdir data
 ln -s /media/Lacie_1/DATA/Methylation_Marato/ data/methylation
 
+ln -s /media/Lacie_1/DATA/MARATÓ/RNASEQ/ data/RNAseq_fastq
 mkdir data/RNAseq
 ### Copy quantification data from dropbox
 ### Download general sample data to data folder
