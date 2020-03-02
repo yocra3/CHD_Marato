@@ -23,3 +23,7 @@ nextflow run yocra3/CHD_Marato/workflows/methylation_QC_normalization.nf --inFol
 nextflow run yocra3/CHD_Marato/workflows/detectEpiMutations.nf --sampleAnnot results/phenotypes/v1/pheno.tab \
 --gset results/methylation/finalQC_files/v1/gset.autosomic.Rdata --version v1 \
 -with-docker yocra3/rsession_chd_marato:release-1.2.3
+
+## RNAseq quantification
+nextflow run workflows/RNAseqQuantification.nf --inFold data/RNAseq_fastq/ \
+-with-docker yocra3/ubuntu_genomicutils:release-0.99.3 --version v1 --cores 15
