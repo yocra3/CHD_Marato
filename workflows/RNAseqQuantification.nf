@@ -38,7 +38,8 @@ Cmd line: $workflow.commandLine
 
 // Create channels with paired fastq files
 fastqs = Channel.fromFilePairs("${params.inFold}/*{1,2}.fastq.gz", flat: true)
-fastqs.into { fastq_QC; fastq_QCscreen; fastq_STAR }
+fastqs2 = Channel.fromFilePairs("${params.inFold}/*{1,2}.original.fastq.gz", flat: true)
+fastqs.mix(fastqs2).into { fastq_QC; fastq_QCscreen; fastq_STAR }
 
 // Run FastQC on reads
 process runFastQC {
