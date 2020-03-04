@@ -41,6 +41,7 @@ fastqs = Channel.fromFilePairs("${params.inFold}/*{1,2}.fastq.gz", flat: true)
 fastqs2 = Channel.fromFilePairs("${params.inFold}/*{1,2}.original.fastq.gz", flat: true)
 fastqs.mix(fastqs2).into { fastq_QC; fastq_QCscreen; fastq_STAR }
 
+
 // Run FastQC on reads
 process runFastQC {
 
@@ -65,8 +66,7 @@ process runFastQCscreen {
   set pair_id, file(read1), file(read2) from fastq_QCscreen
 
   output:
-  file("${pair_id}_1_screen.txt") into fastqcS1
-  file("${pair_id}_2_screen.txt") into fastqcS2
+  file("*_screen.txt") into fastqcScreen
 
   """
   fastq_screen --conf ${config} ${read1} --aligner bowtie2
@@ -106,11 +106,11 @@ process AlignReads {
   label 'RNAseq_align'
 
   publishDir "${params.mapDir}/$date", pattern: '*.{bam,txt}', mode: 'copy'
-  publishDir "${params.quantDir}/$date", pattern: '*.{tab,txt}', mode: 'copy'
+  publishDir "${params.quantDir}/$date", pattern: '*.{SJ.out.tab,txt}', mode: 'copy'
 
   if ( params.version != null ){
     publishDir "${params.mapDir}/${params.version}", pattern: '*.{bam,txt}', mode: 'copy'
-    publishDir "${params.quantDir}/${params.version}", pattern: '*.{tab,txt}', mode: 'copy'
+    publishDir "${params.quantDir}/${params.version}", pattern: '*.{SJ.out.tab,txt}', mode: 'copy'
   }
 
   input:
@@ -120,7 +120,7 @@ process AlignReads {
 
   output:
   file ("${pair_id}SJ.out.tab") into junction
-  file ("${pair_id}ReadsPerGene.out.tab") into geneQuanti
+  set pair_id, file ("${pair_id}ReadsPerGene.out.tab") into geneQuanti
   file ("${pair_id}Aligned.out.bam") into align
   file ("${pair_id}Log.final.out") into logSTAR
   file 'log.txt'
@@ -137,6 +137,8 @@ process AlignReads {
   """
 }
 
+geneQuanti.into { geneQuanti_QC; geneQuanti_clean }
+
 process multiqc {
 
   publishDir "${params.QCdir}/$date", mode: 'copy'
@@ -146,10 +148,9 @@ process multiqc {
   }
 
   input:
-  file ('FastQC_screen/*') from fastqcS1.collect().ifEmpty([])
-  file ('FastQC_screen/*') from fastqcS2.collect().ifEmpty([])
+  file ('FastQC_screen/*') from fastqcScreen.collect().ifEmpty([])
   file ('fastqc/*') from fastqc_results.collect().ifEmpty([])
-  file ('align/*') from geneQuanti.collect().ifEmpty([])
+  file ('align/*') from geneQuanti_QC.collect().ifEmpty([])
   file ('align/*') from logSTAR.collect().ifEmpty([])
   val logText from "$workflowInfo"
 
@@ -162,6 +163,46 @@ process multiqc {
 
   """
   multiqc .
+  echo "$logText" > log.txt
+  """
+}
+
+process cleanQuantification {
+
+  input:
+  set pair_id, file(quanti) from geneQuanti_clean
+
+  output:
+  file("quantcol.txt") into quantiSamps
+
+  """
+  echo -e "annot\t$pair_id" > quantcol.txt
+  cut -f1,2 $quanti >> quantcol.txt
+  """
+}
+
+process exportQuantification {
+
+  publishDir "${params.quantDir}/$date", mode: 'copy'
+
+  if ( params.version != null ){
+    publishDir "${params.quantDir}/${params.version}",  mode: 'copy'
+  }
+
+  input:
+  file ('quanti*.txt') from quantiSamps.collect().ifEmpty([])
+  val logText from "$workflowInfo"
+
+  output:
+  file("geneQuantification.txt") into geneFinal
+  file 'log.txt'
+
+  """
+  samps=\$(ls quanti*.txt | wc -l)
+  cols=1,\$(seq -s, 2 2 \$(( 2 * \$samps)))
+
+  paste quanti*.txt > quantiAll.txt
+  cut -f\$cols quantiAll.txt > geneQuantification.txt
   echo "$logText" > log.txt
   """
 }

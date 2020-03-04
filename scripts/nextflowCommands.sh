@@ -25,5 +25,5 @@ nextflow run yocra3/CHD_Marato/workflows/detectEpiMutations.nf --sampleAnnot res
 -with-docker yocra3/rsession_chd_marato:release-1.2.3
 
 ## RNAseq quantification
-nextflow run workflows/RNAseqQuantification.nf --inFold data/RNAseq_fastq/ \
+nextflow run yocra3/CHD_Marato/workflows/RNAseqQuantification.nf --inFold data/RNAseq_fastq/ \
 -with-docker yocra3/ubuntu_genomicutils:release-0.99.3 --version v1 --cores 15
