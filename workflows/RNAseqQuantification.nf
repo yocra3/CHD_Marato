@@ -177,7 +177,7 @@ process cleanQuantification {
 
   """
   echo -e "annot\t$pair_id" > quantcol.txt
-  cut -f1,2 $quanti >> quantcol.txt
+  cut -f1,4 $quanti >> quantcol.txt
   """
 }
 
