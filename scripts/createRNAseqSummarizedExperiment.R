@@ -69,3 +69,7 @@ save(rse, file = "RNAseq_RangedSE_allGenes.Rdata")
 ### Filter genes with low counts (criterium in header)
 rse <- rse[rowSums(cpm(assay(rse)) > 0.5) > 5, ]
 save(rse, file = "RNAseq_RangedSE_expressedGenes.Rdata")
+
+### Filter genes with low counts (criterium in header)
+rse <- rse[!seqnames(rowRanges(rse)) %in% c("chrX", "chrY"), ]
+save(rse, file = "RNAseq_RangedSE_autosomicGenes.Rdata")
