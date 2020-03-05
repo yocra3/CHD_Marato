@@ -45,7 +45,9 @@ process createRangedSummarizedExperiment {
 
   output:
   file("RNAseq_RangedSE_allGenes.Rdata") into rseAll
-  file("RNAseq_RangedSE_expressedGenes.Rdata") into rse
+  file("RNAseq_RangedSE_expressedGenes.Rdata") into rseFilt
+  file("RNAseq_RangedSE_autosomicGenes.Rdata") into rse
+
   file 'log.txt'
 
   """

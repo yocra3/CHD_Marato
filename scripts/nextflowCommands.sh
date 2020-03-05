@@ -32,3 +32,9 @@ nextflow run yocra3/CHD_Marato/workflows/RNAseqQuantification.nf --inFold data/R
 nextflow run yocra3/CHD_Marato/workflows/RNAseqQuantification.nf --inFold data/RNAseq_fastq/ \
 -with-docker yocra3/ubuntu_genomicutils:release-0.99.3 --version v1 --cores 15
 
+## Create RNAseq objects and QC
+nextflow run yocra3/CHD_Marato/workflows/RNAseq_QC.nf --countsPath results/RNAseq/quantification/v1/geneQuantification.txt \
+--phenoPath results/phenotypes/v1/pheno.Rdata -with-docker yocra3/rsession_chd_marato:release-1.2.4  \
+--version v1
+
+
