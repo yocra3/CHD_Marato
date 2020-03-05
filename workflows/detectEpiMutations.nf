@@ -22,27 +22,30 @@ Git info: $workflow.repository - $workflow.revision [$workflow.commitId]
 Cmd line: $workflow.commandLine
 """
 
-process getCases {
+
+// Get sampleID from phenotype file
+process getSamples {
 
   input:
   file(pheno) from sampleAnnot
 
   output:
-  file("cases.txt") into casesFile
+  file("samps.txt") into samplesFile
 
   """
-  grep Case $pheno | cut -f1 > cases.txt
+  cut -f1  $pheno > samps.txt
   """
 
 }
 
 
-cases = casesFile.splitText()
+samps = samplesFile.splitText()
 
+// Run epimutation algorithm to each sample
 process runEpimutations {
 
   input:
-  val sample from cases
+  val sample from samps
   file(gset) from gset
 
   output:
