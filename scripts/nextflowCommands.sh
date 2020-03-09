@@ -37,4 +37,9 @@ nextflow run yocra3/CHD_Marato/workflows/RNAseq_QC.nf --countsPath results/RNAse
 --phenoPath results/phenotypes/v1/pheno.Rdata -with-docker yocra3/rsession_chd_marato:release-1.2.4  \
 --version v1
 
+## Run OUTRIDER
+nextflow run yocra3/CHD_Marato/workflows/RNAseq_aberrations_OUTRIDER.nf \
+--rangedSE results/RNAseq/Bioc_objects/v1/RNAseq_RangedSE_autosomicGenes.Rdata \
+-with-docker yocra3/rsession_chd_marato:release-1.2.4  \
+--version v1
 
