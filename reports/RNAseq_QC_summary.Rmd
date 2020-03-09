@@ -1,0 +1,282 @@
+---
+title: "RNAseq data QC"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r, echo = FALSE}
+library(DESeq2)
+library(cowplot)
+library(dendextend)
+library(ggplot2)
+
+vers <- "v1/"
+QC_folder <- paste0("../results/RNAseq/QC_files/", vers)
+final_folder <- paste0("../results/RNAseq/Bioc_objects/", vers)
+
+load(paste0(QC_folder, "RNAseq_QCobject.Rdata"))
+load(paste0(final_folder, "RNAseq_RangedSE_allGenes.Rdata"))
+
+ngenes <- nrow(rse)
+```
+
+This report contains an exploration of the data obtained after aligning the reads and quantifying the genes. A report of reads and alignment QC performed with multiQC can be found in results/RNAseq/QC_sequencing.
+
+# Genes filtering
+
+## Initial dataset
+Our initial dataset contained `r ngenes` and `r ncol(rse)`. 
+
+```{r, echo = FALSE}
+load(paste0(final_folder, "RNAseq_RangedSE_expressedGenes.Rdata"))
+ngenes2 <- nrow(rse)
+```
+
+## Low expressed genes removal
+
+We removed genes lowly expressed in our dataset. We kept genes with more than 0.5 cpms in at least 5 samples. Thus, `r ngenes - ngenes2` genes were removed, leading to a dataset with `r ngenes2` genes. 
+```{r}
+load(paste0(final_folder, "RNAseq_RangedSE_autosomicGenes.Rdata"))
+ngenes3 <- nrow(rse)
+```
+
+Finally, we removed genes found in sexual chromosomes. `r ngenes2 - ngenes3` genes were removed, leading to a final dataset with `r ngenes3` genes. 
+
+## Autosomal genes
+
+
+# Data exploration
+
+We used two different normalization methods to explore our RNAseq data: VST (variance stabilizing transformation) and rlog (regularized-logarithm transformation). For both methods, we run a PCA and a sample clustering. 
+
+In the following sections, we will explore whether different phenotypic variants had an effect on global transcriptomic patterns. In all cases, genes in sexual chromosomes were removed.
+
+```{r}
+vsdPCA <- prcomp(t(assay(vsd)), rank. = 5)
+rlogPCA <- prcomp(t(assay(rld)), rank. = 5)
+hcVSD <- as.dendrogram(hclust(distVSD))
+hcRLG <- as.dendrogram(hclust(distRLD))
+
+computePCAvals <- function(pca, var){
+  pc <- pca$x
+ pvals <-  sapply(seq_len(ncol(pc)), function(i) anova(lm(pc[, i] ~ var))$`Pr(>F)`[1])
+ names(pvals) <- paste0("PC", 1:5)
+ pvals
+}
+
+PCAtable <- function(var){
+  
+  pvalsVSD <- computePCAvals(vsdPCA, var)
+  pvalsRLG <- computePCAvals(rlogPCA, var)
+
+  res <- rbind(pvalsVSD, pvalsRLG)
+  rownames(res) <- c("VSD", "RLG")
+  res
+}
+
+```
+
+## Status
+
+We explored whether case/control status was correlated with the first five principal components.
+
+```{r}
+vp <- plotPCA(vsd, intgroup = "Status") +
+  theme_bw() +
+  ggtitle("VSD")
+
+rp <- plotPCA(rld, intgroup = "Status") +
+  theme_bw() +
+  ggtitle("rlog")
+
+plot_grid(vp, rp, ncol = 1)
+PCAtable(rse$Status)
+```
+
+Case/control status is very correlated with the first two principal components.
+
+```{r}
+col <- c("green", "red")
+labels_colors(hcVSD) <- col[as.numeric(factor(rse$Status))][order.dendrogram(hcVSD)]
+plot(hcVSD, main = "VSD")
+```
+
+4/5 control samples form a clearly identifiable cluster, while the 5th samples is mixed with case samples.
+
+
+## Pathological group
+
+We explored whether pathological group was correlated with the first five principal components.
+
+```{r}
+vp <- plotPCA(vsd, intgroup = "pathGroup") +
+  theme_bw() +
+  ggtitle("VSD")
+
+rp <- plotPCA(rld, intgroup = "pathGroup") +
+  theme_bw() +
+  ggtitle("rlog")
+
+plot_grid(vp, rp, ncol = 1)
+PCAtable(rse$pathGroup)
+```
+
+Pathological group was also correlated with the first two PCs. However, the effect might be increased due to the big difference between cases and controls.
+
+```{r}
+group <- rse$pathGroup
+group[is.na(group)] <- "Mallorca"
+group <- factor(group)
+
+col <- c("red", "orange", "green", "blue", "purple", "black")
+labels_colors(hcVSD) <- col[as.numeric(group)][order.dendrogram(hcVSD)]
+plot(hcVSD, main = "VSD")
+```
+
+Again, we observe the big differences between cases and controls (red). Only pathologic groups G2 (green) and G4 (blue)  have enough samples to be compared. Some G4 samples are clustered in a subgroup, but the pattern is not very strong.
+
+## Sex
+
+We explored whether sex was correlated with the first five principal components.
+
+```{r}
+vp <- plotPCA(vsd, intgroup = "Sex") +
+  theme_bw() +
+  ggtitle("VSD")
+
+rp <- plotPCA(rld, intgroup = "Sex") +
+  theme_bw() +
+  ggtitle("rlog")
+
+plot_grid(vp, rp, ncol = 1)
+PCAtable(rse$Sex)
+```
+
+Sex was not associated with any of the first five principal components of transcriptomic expression.
+
+```{r}
+col <- c("purple", "orange")
+labels_colors(hcVSD) <- col[as.numeric(factor(rse$Sex))][order.dendrogram(hcVSD)]
+plot(hcVSD)
+```
+
+Females samples (purple) do not cluster with male samples (orange).
+
+## Gestational age
+
+We evaluated the association between gestational age and the first two principal components.
+
+```{r}
+PCAtable(rse$GestAge)
+```
+
+Gestational age was highly correlated with the first two principal components. 
+
+In order to create PCA plots, we divided gestational age in tertiales.
+
+```{r}
+GestAgecat  <- cut(vsd$GestAge, quantile(vsd$GestAge, na.rm = TRUE))
+vsd$GestAgecat <- GestAgecat
+rld$GestAgecat <- GestAgecat
+
+vp <- plotPCA(vsd, intgroup = "GestAgecat") +
+  theme_bw() +
+  ggtitle("VSD")
+
+rp <- plotPCA(rld, intgroup = "GestAgecat") +
+  theme_bw() +
+  ggtitle("rlog")
+
+plot_grid(vp, rp, ncol = 1)
+```
+
+We clearly observed how samples with lowest gestational ages are separated from the rest.
+
+```{r}
+col <- c("red", "green", "blue", "purple", "black")
+labels_colors(hcVSD) <- col[as.numeric(factor(vsd$GestAgecat))][order.dendrogram(hcVSD)]
+plot(hcVSD)
+```
+
+Youngest samples (12-15 weeks, red) are clustered together. For higher gestational ages, we do not see any structure.
+
+Gestational age can be correlated with principal components due to its link with disease status. Thus, we repeat the previous PCA plot showing both variables:
+
+
+```{r}
+vp <- plotPCA(vsd, intgroup = c("Status", "GestAgecat")) +
+  theme_bw() +
+  ggtitle("VSD")
+
+rp <- plotPCA(rld, intgroup = c("Status", "GestAgecat")) +
+  theme_bw() +
+  ggtitle("rlog")
+
+plot_grid(vp, rp, ncol = 1)
+```
+
+In our transcriptomic data, all case samples have higher gestational age, so the group with the youngest samples only contains control samples. Inside the case groups, we do not observe big differences due to gestational age.  
+
+If we run the PCA only in case samples, we do not find any association between PCs and gestional age:
+
+```{r}
+prcomp(t(assay(vsd[, vsd$Status == "Case"])), rank. = 5) %>%
+  computePCAvals(vsd[, vsd$Status == "Case"]$GestAge)
+```
+
+## Sample batch
+
+We explored whether the batch where the sample was obtained was correlated with the first five principal components.
+
+```{r}
+vp <- plotPCA(vsd, intgroup = "SampleBatch") +
+  theme_bw() +
+  ggtitle("VSD")
+
+rp <- plotPCA(rld, intgroup = "SampleBatch") +
+  theme_bw() +
+  ggtitle("rlog")
+
+plot_grid(vp, rp, ncol = 1)
+PCAtable(rse$SampleBatch)
+```
+
+We do not observe any difference between the samples coming from different labs. Nonetheless, all samples came from VHIR1 but 3 samples, one from each of the remaining batches (VHIR2, Mallorca and lab).
+
+
+## Genetic cause
+
+We explored whether samples with known genetic cause were clustered in the first five principal components.
+
+```{r}
+vp <- plotPCA(vsd, intgroup = "GeneticCause") +
+  theme_bw() +
+  ggtitle("VSD")
+
+rp <- plotPCA(rld, intgroup = "GeneticCause") +
+  theme_bw() +
+  ggtitle("rlog")
+
+plot_grid(vp, rp, ncol = 1)
+PCAtable(rse$GeneticCause)
+```
+
+Having a known genetic cause is corretaled with the second PC.
+
+```{r}
+col <- c("grey", "black")
+labels_colors(hcVSD) <- col[as.numeric(factor(rse$GeneticCause))][order.dendrogram(hcVSD)]
+plot(hcVSD, main = "VSD")
+```
+
+We observe that some samples with known genetic variants (black) are clustered together.

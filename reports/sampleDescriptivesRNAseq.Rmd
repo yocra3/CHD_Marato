@@ -1,0 +1,138 @@
+---
+title: "Samples descriptives"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+```{r}
+library(ggplot2)
+library(SummarizedExperiment)
+
+pheno_vers <- "v1/"
+rnaseq_vers <- "v1/"
+
+## load files
+load(paste0("../results/phenotypes/", pheno_vers, "pheno.Rdata"))
+
+final_folder <- paste0("../results/RNAseq/Bioc_objects/", rnaseq_vers)
+load(paste0(final_folder, "RNAseq_RangedSE_autosomicGenes.Rdata"))
+
+## Define function for summary statistics
+getSum <- function(vec, type = "continuous"){
+  if (type == "continuous"){
+    c(median = median(vec, na.rm = TRUE), 
+      range = quantile(vec, probs = c(0.25, 0.75), na.rm = TRUE))
+  } else if (type == "categorical"){
+    t <- table(vec)
+    data.frame(Categories = names(t),  N = as.vector(t), 
+               Percentage = sprintf("%.2f", as.vector(prop.table(t)*100)),
+               stringsAsFactors = FALSE)
+  }
+}
+
+cats <- c("RNAseq", "Whole dataset")
+```
+
+# RNAseq population
+
+This section describes the general features of the samples included in the RNAseq analysis. We will compared it with the proportions in the general population.
+
+## Sex
+
+```{r}
+rbind(c("RNAseq", " ", " "),
+      getSum(rse$Sex, type = "categorical"),
+      c("Whole dataset", " ", " "),
+      getSum(pheno$Sex, type = "categorical"))
+
+```
+
+We have a balanced number of males and females, similarly to the whole dataset.
+
+```{r}
+chisq.test(rbind(table(rse$Sex), table(pheno$Sex)))
+```
+
+RNAseq and whole dataset do not have a different proportion of males and females. 
+
+## Gestational age
+
+Gestational age is measured in weeks.
+
+```{r}
+wilcox.test(rse$GestAge, pheno$GestAge)
+```
+
+The median gestational age of RNAseq samples is 21 weeks (IQR: 20-22), the same than for the whole dataset. Thus, we did not find differences in gestational age between RNAseq and whole dataset.
+
+## Status
+
+```{r}
+rbind(c("RNAseq", " ", " "),
+      getSum(rse$Status, type = "categorical"),
+      c("Whole dataset", " ", " "),
+      getSum(pheno$Status, type = "categorical"))
+```
+
+We included all our controls in the RNAseq analysis, so the proportion of controls raised to 22%. 
+
+```{r}
+fisher.test(rbind(table(rse$Status), table(pheno$Status)))
+```
+
+The differences in the proportion of controls is not statistically significant.
+
+## CHD group
+
+```{r}
+rbind(c("RNAseq", " ", " "),
+      getSum(rse$pathGroup, type = "categorical"),
+      c("Whole dataset", " ", " "),
+      getSum(pheno$pathGroup, type = "categorical"))
+```
+
+As in the whole dataset, groups G2 and G4 comprised most of the samples. Groups G1 and G5 are only represented with one sample each.
+
+```{r}
+fisher.test(rbind(table(rse$pathGroup), table(pheno$pathGroup)))
+```
+
+The proportions of samples in each pathologic group is similar to the whole dataset.
+
+## Genetic Cause
+
+```{r}
+rbind(c("RNAseq", " ", " "),
+      getSum(rse$GeneticCause, type = "categorical"),
+      c("Whole dataset", " ", " "),
+      getSum(pheno$GeneticCause, type = "categorical"))
+```
+
+The proportion of samples with identified genetic cause is similar for RNAseq samples than in the whole dataset.
+
+```{r}
+fisher.test(rbind(table(rse$GeneticCause), table(pheno$GeneticCause)))
+```
+
+We did not find differences either for this variables between RNAseq and the whole dataset.
+
+## Sample Batch
+
+```{r}
+rbind(c("RNAseq", " ", " "),
+      getSum(rse$SampleBatch, type = "categorical"),
+      c("Whole dataset", " ", " "),
+      getSum(pheno$SampleBatch, type = "categorical"))
+```
+
+Almost all samples from RNAseq come from sample batch VHIR1. The other batches only contributed with one sample each. 

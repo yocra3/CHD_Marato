@@ -23,9 +23,10 @@ library(tidyr)
 library(Gviz)
 library(biomaRt)
 
-vers <- "v1"
-load(paste0("../results/methylation/finalQC_files/", vers, "/gset.autosomic.Rdata"))
-bumps <- read.delim(paste0("../results/methylation/Epimutations/", vers, "/bumpsSel.txt"), 
+vers.epiMut <- "v2"
+vers.QC <- "v1"
+load(paste0("../results/methylation/finalQC_files/", vers.QC, "/gset.autosomic.Rdata"))
+bumps <- read.delim(paste0("../results/methylation/Epimutations/", vers.epiMut, "/bumpsSel.txt"), 
                     header = FALSE)
 colnames(bumps) <- c("chromosome", "start", "end", "value", "area", "cluster", "indexStart",
                      "indexEnd", "L", "clusterL", "Sample", "Anova")
