@@ -45,15 +45,17 @@ ngenes2 <- nrow(rse)
 ## Low expressed genes removal
 
 We removed genes lowly expressed in our dataset. We kept genes with more than 0.5 cpms in at least 5 samples. Thus, `r ngenes - ngenes2` genes were removed, leading to a dataset with `r ngenes2` genes. 
-```{r}
+
+
+
+## Autosomal genes
+
+```{r, echo = FALSE}
 load(paste0(final_folder, "RNAseq_RangedSE_autosomicGenes.Rdata"))
 ngenes3 <- nrow(rse)
 ```
 
 Finally, we removed genes found in sexual chromosomes. `r ngenes2 - ngenes3` genes were removed, leading to a final dataset with `r ngenes3` genes. 
-
-## Autosomal genes
-
 
 # Data exploration
 

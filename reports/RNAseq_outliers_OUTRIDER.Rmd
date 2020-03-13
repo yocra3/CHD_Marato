@@ -1,0 +1,112 @@
+---
+title: "RNAseq outliers OUTRIDER"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r, echo = FALSE}
+library(OUTRIDER)
+library(cowplot)
+library(ggplot2)
+library(dplyr)
+
+RNA_vers <- "v1/"
+methy_aberr_vers <- "v2/"
+
+RNA_folder <- paste0("../results/RNAseq/Bioc_objects/", RNA_vers)
+outrider_folder <- paste0("../results/RNAseq/OUTRIDER_aberrations/", RNA_vers)
+
+load(paste0(RNA_folder, "RNAseq_RangedSE_autosomicGenes.Rdata"))
+load(paste0(outrider_folder, "OUTRIDER_res.Rdata"))
+
+bumps <- read.delim(paste0("../results/methylation/Epimutations/", methy_aberr_vers, "/bumpsSel.txt"), 
+                    header = FALSE)
+colnames(bumps) <- c("chromosome", "start", "end", "value", "area", "cluster", "indexStart",
+                     "indexEnd", "L", "clusterL", "Sample", "Anova")
+bumps_filt <- subset(bumps, Sample %in% colnames(rse))
+
+```
+
+This report contains an exploration of the outlier results obtained with OUTRIDER.
+
+# General analysis
+
+```{r}
+results(ods.res)
+```
+
+No gene was identified as an outlier when considering all genes together.
+
+# Genes close to methylation aberrations
+
+We explored whether genes close to methylation aberrations were outliers.
+
+```{r}
+getOutliers <- function(row, bumps, geneRanges, outrider, window = 100e3){
+  
+  sample <- bumps[row, "Sample"]
+  GRbump <- GRanges(paste0(bumps[row, "chromosome"], ":", bumps[row, "start"], "-", bumps[row, "end"]))
+  selGenes <- subsetByOverlaps(geneRanges, GRbump + window)
+  
+  subset(outrider, geneID %in% names(selGenes) & sampleID == sample)
+}
+
+outres <- results(ods.res, all = TRUE)
+GRgenes <- rowRanges(rse)
+
+allres <- lapply(1:nrow(bumps_filt), getOutliers, bumps =  bumps_filt, geneRanges =  GRgenes, outrider = outres)
+allres <- Reduce(rbind, allres)
+sigRes <- subset(allres, pValue < 0.05) %>% arrange(pValue)
+```
+
+We restricted our search to genes close to epigenetic alterations reported in the methylation array data. We found 6 outlier genes nominally significant:
+
+```{r}
+sigRes
+
+plotRow <- function(sample, gene) {
+  
+  plotExpectedVsObservedCounts(ods.res, gene, basePlot = TRUE,
+                               groups = factor(ifelse(ods.res$SampleID == sample, 
+                                              sample, "Population")
+                                              )
+  )
+}
+```
+
+
+Two outlier genes belonged to case samples (G5CS6CO and G4CS8CO) and the remaining to two control samples (G3CS1CO and G3CS5CO). 
+
+G3CS1CO presented a region with higher methylation in TTC23 promoter while it presents a lower expression for this gene than expected:
+
+```{r}
+plotRow("G3CS1CO", "ENSG00000103852.13_7")
+```
+
+G4CS8CO presented a region with higher methylation in COL6A promoter while it presents a lower expression for this gene than expected:
+
+```{r}
+plotRow("G4CS8CO", "ENSG00000142156.15_3")
+```
+
+Outlier genes of G5CS6CO and G3CS5CO were very far from a methylation aberration, so we did not consider it.
+
+# Discussion
+
+The outlier analysis of gene expression did not find any outlier gene after adjusting for multiple testing and considering all genes in the genome. When running a more restricting the analysis to genes close to previously identified epigenetic aberrations, we found 6 outlier genes nominally significant. Of those, only two outlier genes contained the epigenetic alteration in their promoter.
+
+These two outlier genes are good candidates of how a genetic epimutation can lead to altered gene expression. In one hand, G3CS1CO is a control sample and be used as a proof of concept for the approach. On the other, G4CS8CO sample had altered COL6A1 expression and promoter methylation. This gene has already been associated with congenital heart disease, so this epimutation can be the diagnostic cause for disease in this case. Intriguingly, this sample already had a candidate mutation in PRDM16, so further test are required to determine the specific pathogenic mechanism.
+
+Despite promising, these results should be interpreted with caution. First, p-values for the outlier calls are very high. Even after restricting genes and samples to match previously defined locus, p-values were close to 0.05 and very far from multiple comparison significance. Although these big p-values might be caused by low power due to our small sample size, they compromise the reliability of our results.
+
+Second, we had one sample classified as suffering Di George syndrome. This sample is supposed to contain a deletion in chromosome 22, so we would expect to find outlier genes in this region. However, we did not find any signal in this region. A possible explanation is that the genes deleted by Digeorge are not expressed in fetus heart tissue. We need to know the exact coordinates of the deletion in order to test this hypothesis. 
