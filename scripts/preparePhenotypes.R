@@ -110,6 +110,7 @@ codebook <- data.frame(Variable = finalVars,
                                    "Gestional age in weeks", "Case (fetus with CHD) or Control",
                                    "CHD classification from pathologists", 
                                    "If TRUE, fetus with Di George syndrom or with a pathogenic candidate variant",
+                                   "Coordinates of the pathogenic variants",
                                    "Gene containing the pathogenic variant",
                                    "Batch when the sample was introduced in the study. VHIR1: first batch from VHIR. VHIR2: second batch from VHIR. Lab: Samples present in the lab. Mallorca: Samples from Mallorca."))
 write.table(codebook, file = "codebook.tab", sep = "\t", quote = FALSE, row.names = FALSE)
