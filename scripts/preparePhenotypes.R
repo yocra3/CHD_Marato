@@ -22,7 +22,7 @@ library(dplyr)
 raw <- read_excel(paste0(inFold, "/data/mostresMARATO_genomes_transcriptoma_Metiloma2.xlsx"), 
                       sheet = "Metiloma_plantilla")
 ### Load genetic data
-raw_gen <- read_excel(paste0(inFold, "/data/Resumen_Pacientes_mod.xlsx"), skip = 1)
+raw_gen <- read_excel(paste0(inFold, "/data/Resumen_Pacientes_modv2.xlsx"), skip = 1)
 
 ## Load samples sheets
 batch1 <- read_excel(paste0(inFold, "/data/Muestras2-2016_Datosentregar.xlsx"), 

@@ -6,7 +6,8 @@
 #'#################################################################################
 
 ## Prepare phenotypes
-nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf -with-docker yocra3/rsession_chd_marato:release-1.2.3 --version v1
+nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf \
+-with-docker yocra3/rsession_chd_marato:release-1.2.3 --version v2
 
 ## Get SNPs from WGS present in methylation data
 nextflow run  yocra3/CHD_Marato/workflows/prepareSNPsMethylation.nf --inFold data/ExomeVCFs \
@@ -15,9 +16,9 @@ nextflow run  yocra3/CHD_Marato/workflows/prepareSNPsMethylation.nf --inFold dat
 ## QC and normalization of methylation data
 nextflow run yocra3/CHD_Marato/workflows/methylation_QC_normalization.nf --inFold "./data/methylation/" \
 --sampleSheet sampleSheet_Roser_EPIC_concatenados.csv \
---phenoPath results/phenotypes/v1/pheno.Rdata --cores 16 \
+--phenoPath results/phenotypes/v2/pheno.Rdata --cores 9 \
 --genosPath results/methylation/SNPs/v1/genos.raw --methyAnnot data/EPIC.hg19.manifest.rds \
---version v1 -with-docker yocra3/rsession_chd_marato:release-1.2.3
+--version v2 -with-docker yocra3/rsession_chd_marato:release-1.2.3
 
 ## Epimutations detection
 nextflow run yocra3/CHD_Marato/workflows/detectEpiMutations.nf --sampleAnnot results/phenotypes/v1/pheno.tab \
