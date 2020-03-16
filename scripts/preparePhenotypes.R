@@ -60,7 +60,7 @@ pheno$Status <- factor(ifelse(is.na(pheno$pathGroup) | pheno$pathGroup != "Contr
 
 ## Complete phenotypes with genetic info
 ### Select relevant columns
-genvars <- c("ID", "Sexo", "Gen", "Variante", "Priorization")
+genvars <- c("ID", "Sexo", "Gen", "Variante", "Priorization", "Pos")
 genetics <- raw_gen[, genvars]
 
 ### Propagate id
@@ -83,7 +83,8 @@ pheno$Sex[is.na(pheno$Sex)] <- genSex[pheno$SampleID[is.na(pheno$Sex)], "Sex"]
 genetics <- subset(genetics, !is.na(Priorization))
 genSum <- function(x) {if (length(unique(x)) == 1) unique(x) else paste(x, collapse = "/")}
 pheno <- genetics %>% group_by(SampleID) %>%
-  summarize(Gene = genSum(Gen)) %>%
+  summarize(Gene = genSum(Gen),
+            Pos = genSum(Pos)) %>%
   right_join(pheno, by ="SampleID") %>%
   mutate(GeneticCause = ifelse(is.na(Gene) & pathGroup != "G1", FALSE, TRUE))
 
