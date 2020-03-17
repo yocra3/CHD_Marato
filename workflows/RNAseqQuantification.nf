@@ -37,8 +37,8 @@ Cmd line: $workflow.commandLine
 """
 
 // Create channels with paired fastq files
-fastqs = Channel.fromFilePairs("${params.inFold}/{1,2}.fastq.gz", flat: true)
-fastqs2 = Channel.fromFilePairs("${params.inFold}/{1,2}.original.fastq.gz", flat: true)
+fastqs = Channel.fromFilePairs("${params.inFold}/*{1,2}.fastq.gz", flat: true)
+fastqs2 = Channel.fromFilePairs("${params.inFold}/*{1,2}.original.fastq.gz", flat: true)
 fastqs.mix(fastqs2).into { fastq_QC; fastq_QCscreen; fastq_STAR_s1; fastq_STAR_s2 }
 
 
@@ -213,7 +213,7 @@ process exportQuantification {
   }
 
   input:
-  file ('quanti*.txt') from quantiSamps.collect()
+  file ('quanti*.txt') from quantiSamps.collect().ifEmpty([])
   val logText from "$workflowInfo"
 
   output:
