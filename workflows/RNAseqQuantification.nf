@@ -37,9 +37,9 @@ Cmd line: $workflow.commandLine
 """
 
 // Create channels with paired fastq files
-fastqs = Channel.fromFilePairs("${params.inFold}/*{1,2}.fastq.gz", flat: true)
-fastqs2 = Channel.fromFilePairs("${params.inFold}/*{1,2}.original.fastq.gz", flat: true)
-fastqs.mix(fastqs2).into { fastq_QC; fastq_QCscreen; fastq_STAR }
+fastqs = Channel.fromFilePairs("${params.inFold}/{1,2}.fastq.gz", flat: true)
+fastqs2 = Channel.fromFilePairs("${params.inFold}/{1,2}.original.fastq.gz", flat: true)
+fastqs.mix(fastqs2).into { fastq_QC; fastq_QCscreen; fastq_STAR_s1; fastq_STAR_s2 }
 
 
 // Run FastQC on reads
@@ -100,10 +100,29 @@ process indexGenome {
 }
 
 
-// Align reads with STAR
-process AlignReads {
+// Align reads with STAR - pass1
+process AlignReads_s1 {
 
-  label 'RNAseq_align'
+  input:
+  file(indexes) from indexes
+  set pair_id, file(read1), file(read2) from fastq_STAR_s1
+
+  output:
+  file ("${pair_id}SJ.out.tab") into junctionS1
+
+  """
+  STAR --genomeDir $indexes \
+      --readFilesIn ${read1} ${read2} \
+      --readFilesCommand zcat \
+      --outSAMtype BAM Unsorted \
+      --quantMode GeneCounts \
+      --outFileNamePrefix ${pair_id}  \
+      --runThreadN $cpus
+  """
+}
+
+// Align reads with STAR - pass2
+process AlignReads_s2 {
 
   publishDir "${params.mapDir}/$date", pattern: '*.{bam,txt}', mode: 'copy'
   publishDir "${params.quantDir}/$date", pattern: '*.{SJ.out.tab,txt}', mode: 'copy'
@@ -115,7 +134,8 @@ process AlignReads {
 
   input:
   file(indexes) from indexes
-  set pair_id, file(read1), file(read2) from fastq_STAR
+  set pair_id, file(read1), file(read2) from fastq_STAR_s2
+  file("SJ*.out.tab") from junctionS1.toList()
   val logText from "$workflowInfo"
 
   output:
@@ -130,12 +150,15 @@ process AlignReads {
       --readFilesIn ${read1} ${read2} \
       --readFilesCommand zcat \
       --outSAMtype BAM Unsorted \
+      --outSAMunmapped Within \
       --quantMode GeneCounts \
       --outFileNamePrefix ${pair_id}  \
-      --runThreadN $cpus
+      --runThreadN $cpus \
+      --sjdbFileChrStartEnd SJ*.out.tab
   echo "$logText" > log.txt
   """
 }
+
 
 geneQuanti.into { geneQuanti_QC; geneQuanti_clean }
 
