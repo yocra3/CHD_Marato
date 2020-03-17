@@ -213,7 +213,7 @@ process exportQuantification {
   }
 
   input:
-  file ('quanti*.txt') from quantiSamps.collect().ifEmpty([])
+  file ('quanti*.txt') from quantiSamps.collect()
   val logText from "$workflowInfo"
 
   output:
