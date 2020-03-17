@@ -21,7 +21,7 @@ library(ggplot2)
 library(dplyr)
 
 RNA_vers <- "v1/"
-methy_aberr_vers <- "v2/"
+methy_aberr_vers <- "v3/"
 
 RNA_folder <- paste0("../results/RNAseq/Bioc_objects/", RNA_vers)
 outrider_folder <- paste0("../results/RNAseq/OUTRIDER_aberrations/", RNA_vers)

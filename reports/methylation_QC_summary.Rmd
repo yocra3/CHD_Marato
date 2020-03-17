@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ```{r, echo = FALSE}
 library(minfi)
-vers <- "v1"
+vers <- "v2"
 QC_folder <- paste0("../results/methylation/QC_intermediate/", vers)
 final_folder <- paste0("../results/methylation/finalQC_files/", vers)
 ```
@@ -85,7 +85,7 @@ We explored which factors are correlated with global methylation patterns. To th
 - Phenotypic. These variables are related with the samples: Sex and gestational age.
 - Design. These variables are related with our experimental design: Status, CHD group, known genetic cause and sample Batch.
 
-None of the first 5 Principal components was associated with any of the technical variables, suggesting that normalization has removed technical noise. Of the phenotypic variables, gestational age was correlated with components 1 to 4, while sex was not correlated. Design variables had a strong influence in overall methylation patterns. The strongest variable was sample batch, which was correlated with components 1, 2 and 5. Then, we had case/control status (components 3 and 4) and CHD group (component 4). Finally, we observed that having a genetic cause was correlated with component 1. Full results of this exploration are available in meffil_v1_2020-02-21_normalization.html. 
+None of the first 5 Principal components was associated with any of the technical variables, suggesting that normalization has removed technical noise. Of the phenotypic variables, gestational age was correlated with components 1 to 4, while sex was not correlated. Design variables had a strong influence in overall methylation patterns. The strongest variable was sample batch, which was correlated with components 1, 2 and 5. Then, we had case/control status (components 3 and 4) and CHD group (component 4). Finally, we observed that having a genetic cause was correlated with component 1. Full results of this exploration are available in meffil_v2_2020-03-16_normalization.html. 
 
 All in all, these results recommend to run a sensitivity analysis only including samples from batch VHIR1, in order to remove possible confounding due to this variable. 
 

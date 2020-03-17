@@ -23,8 +23,8 @@ library(tidyr)
 library(Gviz)
 library(biomaRt)
 
-vers.epiMut <- "v2"
-vers.QC <- "v1"
+vers.epiMut <- "v3"
+vers.QC <- "v2"
 load(paste0("../results/methylation/finalQC_files/", vers.QC, "/gset.autosomic.Rdata"))
 bumps <- read.delim(paste0("../results/methylation/Epimutations/", vers.epiMut, "/bumpsSel.txt"), 
                     header = FALSE)
