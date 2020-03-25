@@ -20,7 +20,7 @@ library(cowplot)
 library(ggplot2)
 library(dplyr)
 
-RNA_vers <- "v1/"
+RNA_vers <- "v2/"
 methy_aberr_vers <- "v3/"
 
 RNA_folder <- paste0("../results/RNAseq/Bioc_objects/", RNA_vers)
@@ -100,6 +100,42 @@ plotRow("G4CS8CO", "ENSG00000142156.15_3")
 ```
 
 Outlier genes of G5CS6CO and G3CS5CO were very far from a methylation aberration, so we did not consider it.
+
+# Genes close to candidate variants
+
+We explored whether genes close to candidate genetic variants were outliers.
+
+```{r}
+vars <- ods.res$Pos
+names(vars) <- ods.res$SampleID
+vars <- vars[!is.na(vars)]
+vars <- strsplit(vars, "/")
+varsGR <- GRanges(unlist(vars))
+varsGR$SampleID <- rep(names(vars), lengths(vars))
+
+varOutliers <- function(index, varRange, outrider, geneRanges, window){
+  
+  selGR <- varRange[index]
+  selGenes <- subsetByOverlaps(geneRanges, selGR + window)
+  subset(outrider, geneID %in% names(selGenes) & 
+           sampleID == selGR$SampleID)
+  
+}
+
+varRes <- lapply(seq_len(length(varsGR)), varOutliers, varRange = varsGR,
+                 outrider = outres, geneRanges = GRgenes, window = 100e3)
+varRes <- Reduce(rbind, varRes)
+varRessig <- subset(varRes, pValue < 0.05) %>% unique() %>% arrange(pValue)
+varRessig
+```
+
+Only four genes were nominally significant and close to a candidate genetic variant. These genes corresponded to two samples (G2CS6CO and G4CS8CO). Outlier genes for G2CS6CO were far from the candidate variants. For G4CS8CO, one outlier gene was far from the variant but another outlier gene matched the gene with a candidate variant:
+
+```{r}
+plotRow("G4CS8CO", "ENSG00000142611.17_4")
+```
+
+Our target sample has a higher expression than expected for our gene (PRDM16). This variant had a dominant effect. However, this increase is modest and the p-value big. 
 
 # Discussion
 

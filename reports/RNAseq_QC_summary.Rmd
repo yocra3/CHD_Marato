@@ -20,7 +20,7 @@ library(cowplot)
 library(dendextend)
 library(ggplot2)
 
-vers <- "v1/"
+vers <- "v2/"
 QC_folder <- paste0("../results/RNAseq/QC_files/", vers)
 final_folder <- paste0("../results/RNAseq/Bioc_objects/", vers)
 

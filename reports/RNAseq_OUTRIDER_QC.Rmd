@@ -19,7 +19,7 @@ library(OUTRIDER)
 library(ggplot2)
 library(dplyr)
 
-RNA_vers <- "v1/"
+RNA_vers <- "v2/"
 outrider_folder <- paste0("../results/RNAseq/OUTRIDER_aberrations/", RNA_vers)
 load(paste0(outrider_folder, "OUTRIDER_QC.Rdata"))
 
