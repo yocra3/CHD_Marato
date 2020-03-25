@@ -27,14 +27,10 @@ nextflow run yocra3/CHD_Marato/workflows/detectEpiMutations.nf --sampleAnnot res
 
 ## RNAseq quantification
 nextflow run yocra3/CHD_Marato/workflows/RNAseqQuantification.nf --inFold data/RNAseq_fastq/ \
--with-docker yocra3/ubuntu_genomicutils:release-0.99.3 --version v1 --cores 15
-
-## RNAseq quantification
-nextflow run yocra3/CHD_Marato/workflows/RNAseqQuantification.nf --inFold data/RNAseq_fastq/ \
 -with-docker yocra3/ubuntu_genomicutils:release-0.99.3 --version v2 --cores 15
 
 ## Create RNAseq objects and QC
-nextflow run yocra3/CHD_Marato/workflows/RNAseq_QC.nf --countsPath results/RNAseq/quantification/v1/geneQuantification.txt \
+nextflow run yocra3/CHD_Marato/workflows/RNAseq_QC.nf --countsPath results/RNAseq/quantification/v2/geneQuantification.txt \
 --phenoPath results/phenotypes/v2/pheno.Rdata -with-docker yocra3/rsession_chd_marato:release-1.2.4  \
 --version v2
 
@@ -44,3 +40,6 @@ nextflow run yocra3/CHD_Marato/workflows/RNAseq_aberrations_OUTRIDER.nf \
 -with-docker yocra3/rsession_chd_marato:release-1.2.4  \
 --version v2
 
+## RNAseq variant calling
+nextflow run yocra3/CHD_Marato/workflows/RNAseq_VariantCalling.nf \
+--inFold results/RNAseq/alignment/v2/ --version v1
