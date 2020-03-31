@@ -104,6 +104,7 @@ process createFRASER{
   file(bamidx) from bamsidxfilt.toList()
   file(pheno) from pheno
   val(cores) from cpus
+  val logText from "$workflowInfo"
 
   output:
   file("FRASER_obj.Rdata")
@@ -116,6 +117,7 @@ process createFRASER{
   """
   createFRASERobject.R $pheno ./ $cores
   detectSplicingAberrationsFRASER.R FRASER_obj.Rdata
+  echo "$logText" > log.txt
   """
 
 }
