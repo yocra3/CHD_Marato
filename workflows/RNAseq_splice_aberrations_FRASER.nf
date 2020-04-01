@@ -34,7 +34,7 @@ Git info: $workflow.repository - $workflow.revision [$workflow.commitId]
 Cmd line: $workflow.commandLine
 """
 
-bams = Channel.fromPath("${params.bamFold}/G3*.bam")
+bams = Channel.fromPath("${params.bamFold}/*.bam")
               .map { file -> tuple(file.simpleName.replaceFirst(/Aligned/, ""), file) }
 
 // Sort bam
@@ -46,10 +46,10 @@ process sortBam{
   set sampID, file(bam) from bams
 
   output:
-  set sampID, file("sort.bam") into sortbams
+  file("${sampID}.bam") into bams
 
   """
-  samtools sort -o sort.bam $bam
+  samtools sort -o ${sampID}.bam $bam
   """
 }
 
@@ -59,34 +59,15 @@ process indexBams {
   container container_ubuntu
 
   input:
-  set sampID, file(bam) from sortbams
+  file(bam) from bams
 
   output:
-  set sampID, file(bam), file("${bam}.bai") into indexbams
+  file("${bam}.bai") into bamsidx
 
   """
   samtools index -b $bam
   """
 }
-
-
-process filterBams {
-
-  container container_ubuntu
-
-  input:
-  set sampID, file(bam), file(bamidx) from indexbams
-
-  output:
-  file("${sampID}.bam") into bamsfilt
-  file("${sampID}.bam.bai") into bamsidxfilt
-
-  """
-  samtools view -b $bam "22" > ${sampID}.bam
-  samtools index -b ${sampID}.bam
-  """
-}
-
 
 //Create FRASER object
 process createFRASER{
@@ -100,8 +81,8 @@ process createFRASER{
   }
 
   input:
-  file(bam) from bamsfilt.toList()
-  file(bamidx) from bamsidxfilt.toList()
+  file(bam) from bams.toList()
+  file(bamidx) from bamsidx.toList()
   file(pheno) from pheno
   val(cores) from cpus
   val logText from "$workflowInfo"
