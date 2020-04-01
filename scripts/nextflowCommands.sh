@@ -47,4 +47,4 @@ nextflow run yocra3/CHD_Marato/workflows/RNAseq_VariantCalling.nf \
 ## Run splicing aberrations FRASER
 nextflow run yocra3/CHD_Marato/workflows/RNAseq_splice_aberrations_FRASER.nf \
 --bamFold results/RNAseq/alignment/v2/ --phenoPath results/phenotypes/v2/pheno.Rdata \
---version v1
+--version v1 --cores 15

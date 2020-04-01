@@ -94,6 +94,7 @@ process createFRASER{
   file("nonSplitCounts.tsv.gz") into nonSplit
   file("savedObjects/") into hdf5fold
   file("splitCounts.tsv.gz") into split
+  file("log.txt") into logF
 
   """
   createFRASERobject.R $pheno ./ $cores
