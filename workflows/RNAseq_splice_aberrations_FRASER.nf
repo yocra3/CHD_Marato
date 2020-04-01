@@ -63,7 +63,7 @@ process indexBams {
 
   output:
   file("${bam}.bai") into bamsidx
-  file("${bam}") into bams
+  file("${bam}") into bamsout
 
   """
   samtools index -b $bam
@@ -82,7 +82,7 @@ process createFRASER{
   }
 
   input:
-  file(bam) from bams.toList()
+  file(bam) from bamsout.toList()
   file(bamidx) from bamsidx.toList()
   file(pheno) from pheno
   val(cores) from cpus
