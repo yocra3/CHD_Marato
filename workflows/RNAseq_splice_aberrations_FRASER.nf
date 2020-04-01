@@ -46,7 +46,7 @@ process sortBam{
   set sampID, file(bam) from bams
 
   output:
-  file("${sampID}.bam") into bams
+  file("${sampID}.bam") into bamsort
 
   """
   samtools sort -o ${sampID}.bam $bam
@@ -59,10 +59,11 @@ process indexBams {
   container container_ubuntu
 
   input:
-  file(bam) from bams
+  file(bam) from bamsort
 
   output:
   file("${bam}.bai") into bamsidx
+  file("${bam}") into bams
 
   """
   samtools index -b $bam
