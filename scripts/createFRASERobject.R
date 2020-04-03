@@ -30,7 +30,7 @@ bamsdf <- data.frame(bamFile = bams, stringsAsFactors = FALSE) %>%
 
 colData <- pheno %>%
   mutate(sampleID = SampleID) %>%
-  right_join(bamsdf[1:5, ], by = "sampleID")
+  right_join(bamsdf, by = "sampleID")
 
 settings <- FraseRDataSet(colData = DataFrame(colData), 
                           workingDir = ".")
