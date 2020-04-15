@@ -9,6 +9,8 @@ date = java.time.LocalDate.now()
 
 // Default parameters -- Adapt to experiment!!!
 params.resDir = "results/RNAseq/FRASER_splicing_aberrations/"
+params.sortBamDir = "results/RNAseq/sortedAlignments/"
+
 params.bamFold = baseDir
 params.phenoPath = baseDir
 params.version = null
@@ -58,6 +60,11 @@ process indexBams {
 
   container container_ubuntu
 
+  publishDir "${params.sortBamDir}/$date", mode: 'copy'
+
+  if ( params.version != null ){
+    publishDir "${params.sortBamDir}/${params.version}", mode: 'copy'
+  }
   input:
   file(bam) from bamsort
 

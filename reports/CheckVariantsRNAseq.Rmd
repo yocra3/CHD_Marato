@@ -1,0 +1,68 @@
+---
+title: "Check candidate variants from WGS in RNAseq"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Summary
+
+We search for candidate genetic variants in Whole Genome Sequencing data. Then, we looked for the same variants in RNAseq data.
+
+```{r, echo = FALSE}
+library(VariantAnnotation)
+library(GenomicRanges)
+
+vers.RNAseqVars <- "v1"
+vers.pheno <- "v2"
+
+load(paste0("../results/phenotypes/", vers.pheno, "/pheno.Rdata"))
+vcf <- paste0("../results/RNAseq/Variants/", vers.RNAseqVars, "/RNAseq.vcf.gz")
+```
+
+
+
+```{r}
+## Make GRanges of candidate variants
+WGSvars <- pheno$Pos
+names(WGSvars) <- pheno$SampleID
+WGSvars <- WGSvars[!is.na(WGSvars)]
+WGSvars <- strsplit(WGSvars, "/")
+varsGR <- GRanges(unlist(WGSvars))
+varsGR$SampleID <- rep(names(WGSvars), lengths(WGSvars))
+seqlevelsStyle(varsGR) <- "NCBI"
+```
+
+```{r}
+## Select variants of samples present in RNAseq
+RNAsamps <- samples(scanVcfHeader(vcf))
+RNAsamps <- gsub("-", "", RNAsamps)
+
+varsGRsamps <- varsGR[varsGR$SampleID %in% RNAsamps]
+
+## Load vcf for variants present in WGS
+RNAseqvars <- readVcf(vcf, genome = "hg19", param = varsGRsamps)
+
+## Select positions in RNAseq
+matchPos <- paste(seqnames(RNAseqvars), start(RNAseqvars), sep = ":")
+
+varsGRsamps$Pos <- paste(seqnames(varsGRsamps), start(varsGRsamps), sep = ":")
+filtGR <- varsGRsamps[varsGRsamps$Pos %in% matchPos]
+
+g <- geno(RNAseqvars)$GT
+colnames(g) <- gsub("-", "", colnames(g))
+g <- data.frame(g)
+g$Pos <- matchPos
+g$VarName <- rownames(g)
+
+df <- data.frame(Pos = paste(seqnames(filtGR), start(filtGR), sep = ":"),
+                 sampleID = filtGR$SampleID, stringsAsFactors = FALSE)
+merge(df, g[, c("Pos", "VarName", df$sampleID)], by = "Pos")[, -1]
+```
+
