@@ -48,3 +48,7 @@ nextflow run yocra3/CHD_Marato/workflows/RNAseq_VariantCalling.nf \
 nextflow run yocra3/CHD_Marato/workflows/RNAseq_splice_aberrations_FRASER.nf \
 --bamFold results/RNAseq/alignment/v2/ --phenoPath results/phenotypes/v2/pheno.Rdata \
 --version v1 --cores 15
+
+## CNV calling
+nextflow run yocra3/CHD_Marato/workflows/callCNVs.nf --bams "data/WGS/BAMS/*.bam" \
+--genome "hg19" --sampleAnnot data/CHD_marato_sampleSummary.tab --version v1

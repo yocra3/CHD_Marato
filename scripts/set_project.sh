@@ -12,7 +12,25 @@ mkdir data
 ln -s /media/Lacie_1/DATA/Methylation_Marato/ data/methylation
 
 ln -s /media/Lacie_1/DATA/MARATÓ/RNASEQ/ data/RNAseq_fastq
+
 mkdir data/RNAseq
+
+## Add links to WGS bams
+mkdir data/WGS/
+mkdir data/WGS/BAMS/
+ln -s /media/carlos/PORSCHE_2/RAW_DATA/Marato_Fetus/BAMS/*S?.bam data/WGS/BAMS/
+ln -s /media/carlos/PORSCHE_1/RAW_DATA/Marato_Fetus/BAMS/*S?.bam data/WGS/BAMS/
+ln -s /media/carlos/PORSCHE_1/RAW_DATA/Marato_Fetus/BAMS/*S??.bam data/WGS/BAMS/
+ln -s /media/carlos/CANVIO_2/RAW_DATA/Marato_Fetus/BAMS/*S?.bam data/WGS/BAMS/
+ln -s /media/carlos/CANVIO_1/RAW_DATA/Marato_Fetus/BAMS/*S?.bam data/WGS/BAMS/
+
+## Remove bams from other projects
+rm data/WGS/BAMS/624603*
+rm data/WGS/BAMS/624604*
+rm data/WGS/BAMS/62460506_S1.bam
+rm data/WGS/BAMS/62460517_S2.bam
+
+
 ### Copy quantification data from dropbox
 ### Download general sample data to data folder
 
