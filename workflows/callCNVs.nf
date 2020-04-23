@@ -174,7 +174,7 @@ process formatResults {
   set sampID, file("${sampID}.filtered.txt") into filterCalls
 
   """
-	format_cnvnator_results.py $call $sampID
+  format_cnvnator_results.py $call $sampID
   """
 }
 

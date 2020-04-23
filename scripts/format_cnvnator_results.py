@@ -29,8 +29,8 @@ if not os.path.isfile(in_file):
         sys.exit(1)
 if os.path.isfile(out_file):
         print "Delete file", out_file, "and rerun"
-	sys.exit(1)      
-                  
+	sys.exit(1)
+
 i_file = open(in_file)
 o_file = open(out_file,'w')
 if not out_file.find(".txt") == -1:
@@ -42,45 +42,45 @@ else:
 print >> o_file, "#sample\tchrm\tstart\tend\tcnv\tsize\tnormalized_rd\te-val2\tq0"
 print >> f_file, "#sample\tchrm\tstart\tend\tcnv\tsize\tnormalized_rd\te-val2\tq0"
 
-#extract sample name from in_file name	
+#extract sample name from in_file name
 sample = re.sub(".*\/","",re.sub(".CNVnator.wg.bin500","",re.sub(".calls.txt","",in_file)))
 
 #format file
 header_flag = 0
 for line in i_file:
-	line = line.replace("\n","")
-	words = line.replace("#","").split("\t")
-	if line[0] == "#":
-		if words[0] == "#CNV_type":
-			for i in range (0,len(words)):
-				if header_index.has_key(words[i]):
-					header_index[words[i]] = i
+	if line.startswith("deletion") or line.startswith("duplication"):
+
+		line = line.replace("\n","")
+		words = line.replace("#","").split("\t")
+		if line[0] == "#":
+			if words[0] == "#CNV_type":
+				for i in range (0,len(words)):
+					if header_index.has_key(words[i]):
+						header_index[words[i]] = i
+				for c in coi:
+					if header_index[c] == -1:
+						print "Column header ", c, " not found in file"
+						sys.exit(0)
+				
+				header_flag = 1
+		elif header_flag == 0:
+			print "Warning: Header not found, using default.."
 			for c in coi:
-				if header_index[c] == -1:
-					print "Column header ", c, " not found in file"
-					sys.exit(0)
-			
-			header_flag = 1
-	elif header_flag == 0:
-		print "Warning: Header not found, using default.."
-		for c in coi:
-			header_index[c] = default_header_index[c]
-		header_flag = 2
-	else:	
-		type = format[words[header_index["CNV_type"]]]
-		coordinates = words[header_index["coordinates"]].split(":")
-		size = words[header_index["CNV_size"]]
-		nrd = float(words[header_index["normalized_RD"]])
-		eval2 = words[header_index["e-val2"]]
-		q0 = words[header_index["q0"]]
-		fq0 = float(words[header_index["q0"]])
-	
-		tmp_str = sample + "\t" + coordinates[0] + "\t" + coordinates[1].split("-")[0] + "\t" + coordinates[1].split("-")[1] + "\t" + type + "\t" + size + "\t" + `nrd` + "\t" + eval2 + "\t" + q0
-		print >> o_file, tmp_str
-                #filter based on normalized read depth and q0
-		if (nrd <= nrd_cutoff and q0 != q0_exclude) or (fq0 <= q0_cutoff and q0 != q0_exclude):
-			print >> f_file, tmp_str
+				header_index[c] = default_header_index[c]
+			header_flag = 2
+		else:	
+			type = format[words[header_index["CNV_type"]]]
+			coordinates = words[header_index["coordinates"]].split(":")
+			size = words[header_index["CNV_size"]]
+			nrd = float(words[header_index["normalized_RD"]])
+			eval2 = words[header_index["e-val2"]]
+			q0 = words[header_index["q0"]]
+			fq0 = float(words[header_index["q0"]])
+		
+			tmp_str = sample + "\t" + coordinates[0] + "\t" + coordinates[1].split("-")[0] + "\t" + coordinates[1].split("-")[1] + "\t" + type + "\t" + size + "\t" + `nrd` + "\t" + eval2 + "\t" + q0
+			print >> o_file, tmp_str
+	                #filter based on normalized read depth and q0
+			if (nrd <= nrd_cutoff and q0 != q0_exclude) or (fq0 <= q0_cutoff and q0 != q0_exclude):
+				print >> f_file, tmp_str
 i_file.close()
 o_file.close()
-
-
