@@ -24,6 +24,13 @@ ln -s /media/carlos/PORSCHE_1/RAW_DATA/Marato_Fetus/BAMS/*S??.bam data/WGS/BAMS/
 ln -s /media/carlos/CANVIO_2/RAW_DATA/Marato_Fetus/BAMS/*S?.bam data/WGS/BAMS/
 ln -s /media/carlos/CANVIO_1/RAW_DATA/Marato_Fetus/BAMS/*S?.bam data/WGS/BAMS/
 
+ln -s /media/carlos/PORSCHE_2/RAW_DATA/Marato_Fetus/BAMS/*S?.bam.bai data/WGS/BAMS/
+ln -s /media/carlos/PORSCHE_1/RAW_DATA/Marato_Fetus/BAMS/*S?.bam.bai data/WGS/BAMS/
+ln -s /media/carlos/PORSCHE_1/RAW_DATA/Marato_Fetus/BAMS/*S??.bam.bai data/WGS/BAMS/
+ln -s /media/carlos/CANVIO_2/RAW_DATA/Marato_Fetus/BAMS/*S?.bam.bai data/WGS/BAMS/
+ln -s /media/carlos/CANVIO_1/RAW_DATA/Marato_Fetus/BAMS/*S?.bam.bai data/WGS/BAMS/
+
+
 ## Remove bams from other projects
 rm data/WGS/BAMS/624603*
 rm data/WGS/BAMS/624604*
