@@ -5,6 +5,7 @@
 *.Rproj
 *.html
 *.md
+*.png
 
 ## Exclude nextflow files
 .nextflow*
