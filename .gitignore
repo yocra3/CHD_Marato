@@ -16,4 +16,5 @@ data/
 docs/
 results/
 
-
+## Exclude Python pyc
+*.pyc

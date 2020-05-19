@@ -15,9 +15,15 @@ params.outFolder = "results/CNVs/"
 params.version = null
 params.fastaRef = "/home/SHARED/DATA/REFERENCES/GRCh37/Sequence/Homo_sapiens.GRCh37.dna_rm.primary_assembly.fa.gz" //Compressed file
 params.gapsRef = "/home/SHARED/DATA/REFERENCES/Archive/RLCR/RLCRs.txt"
+params.commonCNV = "/home/SHARED/DATA/REFERENCES/GRCh37/CNVs/nstd186.GRCh37.variant_call.vcf.gz"
+params.clinvarCNV = "/home/SHARED/DATA/REFERENCES/GRCh37/CNVs/nstd102.GRCh37.variant_call.vcf.gz"
+params.segDups = "/home/SHARED/DATA/REFERENCES/GRCh37/Repeats/segDups_hg19.txt.gz"
+params.gtfRef = "/home/SHARED/DATA/REFERENCES/GRCh37/GenesAnnotation/gencode.v33lift37.annotation.gtf.gz" //Compressed file
+params.omim = "/home/SHARED/DATA/REFERENCES/GRCh38/OMIM/genemap2.txt.gz"
 
 // Select containers
 container_ubuntu = 'yocra3/ubuntu_genomicutils:release-0.99.5'
+container_R = 'yocra3/rsession_chd_marato:release-1.2.4'
 
 /*
 * Convert parameters with strings to files
@@ -25,6 +31,11 @@ container_ubuntu = 'yocra3/ubuntu_genomicutils:release-0.99.5'
 fastaRef = file("${params.fastaRef}")
 gapsRef = file("${params.gapsRef}")
 sampleAnnot = file(params.sampleAnnot)
+commonCNV = file("${params.commonCNV}")
+clinvarCNV = file("${params.clinvarCNV}")
+segDups = file("${params.segDups}")
+gtfRef = file("${params.gtfRef}")
+omim = file("${params.omim}")
 
 bams = Channel.fromPath("${params.bams}")
               .map { file -> tuple(file.simpleName, file) }
@@ -221,22 +232,23 @@ process convert2VCF {
   echo "##fileformat=VCFv4.3
 ##fileDate=$date
 ##source=CNVnator
-##INFO=<ID=END,Number=1,Type=Integer,Description=\"End position of the variant described in this record\">
-##INFO=<ID=SVLEN,Number=1,Type=Integer,Description=\"Difference in length between REF and ALT alleles\">
-##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of structural variant\">
-##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">
-##FORMAT=<ID=NRD,Number=1,Type=String,Description=\"Normalized Read depth\">
-##FORMAT=<ID=E,Number=1,Type=Float,Description=\"e-val2\">
-##FORMAT=<ID=q0,Number=1,Type=Float,Description=\"q0\">
-##FORMAT=<ID=NCNV,Number=1,Type=Integer,Description=\"Number of CNVs\">
-##FORMAT=<ID=LCNVS,Number=1,Type=Integer,Description=\"Length of CNVS\">
-##FORMAT=<ID=LG,Number=1,Type=Integer,Description=\"Length of gaps\">
-##FORMAT=<ID=PG,Number=1,Type=Float,Description=\"Proportion of Gaps\">
-#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t\${samp}" > \${samp}.vcf
+##INFO=<ID=END,Number=1,Type=Integer,Description='End position of the variant described in this record'>
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description='Difference in length between REF and ALT alleles'>
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description='Type of structural variant'>
+##FORMAT=<ID=GT,Number=1,Type=String,Description='Genotype'>
+##FORMAT=<ID=NRD,Number=1,Type=String,Description='Normalized Read depth'>
+##FORMAT=<ID=E,Number=1,Type=Float,Description='e-val2'>
+##FORMAT=<ID=q0,Number=1,Type=Float,Description='q0'>
+##FORMAT=<ID=NCNV,Number=1,Type=Integer,Description='Number of CNVs'>
+##FORMAT=<ID=LCNVS,Number=1,Type=Integer,Description='Length of CNVS'>
+##FORMAT=<ID=LG,Number=1,Type=Integer,Description='Length of gaps'>
+##FORMAT=<ID=PG,Number=1,Type=Float,Description='Proportion of Gaps'>
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t\${samp}" > \${samp}.CNVs.vcf
   awk  '{OFS = "\t"}!/^#/{print \$2, \$3, ".", "N", ".", "<"\$5">", "PASS", "SVTYPE="\$5";END="\$4";SVLEN="\$6,\
    "GT:NRD:E:q0:NCNV:LCNVS:LG:PG", "1/0:"\$7":"\$8":"\$9":"\$10":"\$11":"\$12":"\$13  }' \
-   $merged >> \${samp}.vcf
-   sed -i 's/:-/:\\./g' \${samp}.vcf ## Change empty values to .
+   $merged >> \${samp}.CNVs.vcf
+   sed -i 's/:-/:\\./g' \${samp}.CNVs.vcf ## Change empty values to .
+   sed -i 's/\\x27/\\x22/g' \${samp}.CNVs.vcf ## Change ' for "
 
   """
 }
@@ -262,28 +274,95 @@ process prepareVCF {
 
   container container_ubuntu
 
-  publishDir "${params.outFolder}/$date", mode: 'copy'
-
-  if ( params.version != null ){
-    publishDir "${params.outFolder}/${params.version}", mode: 'copy'
-  }
 
   input:
   file(vcf) from vcfs
-  val logText from "$workflowInfo"
   file(fastaidx) from fastaIDX
 
   output:
-  file("${vcf}.gz") into sortVCF
-  file("${vcf}.gz.tbi") into tbiVCF
-  file 'log.txt'
+  set file("${vcf}.gz"), file("${vcf}.gz.tbi")  into sortVCF
 
   """
-
-
   bcftools reheader -f $fastaidx -o header.vcf $vcf
   bcftools sort -o ${vcf}.gz -O z  header.vcf
   tabix -p vcf ${vcf}.gz
-  echo "$logText" > log.txt
   """
+}
+
+// Add annotation to CNVs
+process annotateVCF {
+
+  container container_R
+
+  publishDir "${params.outFolder}/VCFs/$date", mode: 'copy'
+
+  if ( params.version != null ){
+    publishDir "${params.outFolder}/VCFs/${params.version}", mode: 'copy'
+  }
+
+  input:
+  set file(vcf), file(vcftbi) from sortVCF
+  file(commonCNV)
+  file(clinvarCNV)
+  file(segDups)
+  file(gtfRef)
+  file(omim)
+
+  output:
+  set samp, file("${samp}_annotated.vcf.gz"), file("${samp}_annotated.vcf.gz.tbi")  into annotatedVCF
+
+  script:
+  samp = vcf.toString() - '.vcf.gz'
+  """
+  annotateCNVs.R $vcf $commonCNV $clinvarCNV $segDups $gtfRef $omim ${samp}_annotated.vcf
+
+  bgzip ${samp}_annotated.vcf
+  tabix -p vcf ${samp}_annotated.vcf.gz
+  """
+
+}
+
+/*
+* Prioritize variants:
+* - Remove CNVs with overlap > 20% with commonCNVs
+* - Remove CNVs with overlap > 20% with benign CNVs
+* - Remove CNVs with overlap > 50% with segmental duplications
+* - Select CNVs with overlap > 80% pathogenic variants (subset1)
+* - Select CNVs overlapping exons in OMIM genes (subset2)
+* - Select CNVs overlapping exons in GENCODE genes (subset3)
+*/
+process filterVCF {
+
+  container container_R
+
+  publishDir "${params.outFolder}/CNVpriorizedTables/$date", mode: 'copy'
+
+  if ( params.version != null ){
+    publishDir "${params.outFolder}/CNVpriorizedTables/${params.version}", mode: 'copy'
+  }
+
+  input:
+  set samp, file(vcf), file(vcftbi) from annotatedVCF
+
+  output:
+  file("${samp}.Prioritization.xlsx") into priorCNV
+
+  script:
+  """
+  filterCNVs.R $vcf ${samp}.Prioritization.xlsx
+  """
+
+}
+
+// Write log files
+workflow.onComplete = {
+  new File("${params.outFolder}/VCFs/$date/log.txt").text = "$workflowInfo"
+  if ( params.version != null ){
+    new File("${params.outFolder}/VCFs/${params.version}/log.txt").text = "$workflowInfo"
+  }
+
+  new File("${params.outFolder}/CNVpriorizedTables/$date/log.txt").text = "$workflowInfo"
+  if ( params.version != null ){
+    new File("${params.outFolder}/CNVpriorizedTables/${params.version}/log.txt").text = "$workflowInfo"
+  }
 }
