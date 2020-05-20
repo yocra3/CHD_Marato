@@ -126,7 +126,7 @@ if(is.null(nrow(patOver20df))){
     getOverlapRefSample(refCNVs[i], cnvtmp, overlap = 0.80))
   patOver80df <- Reduce(rbind, patOver80)
 
-  if (is.null(nrow(patOver20df))){
+  if (is.null(nrow(patOver80df))){
     cnvGR$pathoCNV80 <- character(0)
   } else {
     cnvGR$pathoCNV80 <- split(patOver80df$ref, patOver80df$cnv)[names(cnvGR)]
