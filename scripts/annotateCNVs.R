@@ -115,8 +115,8 @@ patOver20 <- lapply(seq_len(length(pathogenicGR)), function(i)
   getOverlapRefSample(pathogenicGR[i], cnvtmp, overlap = 0.20))
 patOver20df <- Reduce(rbind, patOver20)
 if(is.null(nrow(patOver20df))){
-  cnvGR$pathoCNV20 <- character(0)
-  cnvGR$pathoCNV80 <- character(0)
+  cnvGR$pathoCNV20 <- character(1)
+  cnvGR$pathoCNV80 <- character(1)
 } else {
   cnvGR$pathoCNV20 <- split(patOver20df$ref, patOver20df$cnv)[names(cnvGR)]
 
@@ -127,7 +127,7 @@ if(is.null(nrow(patOver20df))){
   patOver80df <- Reduce(rbind, patOver80)
 
   if (is.null(nrow(patOver80df))){
-    cnvGR$pathoCNV80 <- character(0)
+    cnvGR$pathoCNV80 <- character(1)
   } else {
     cnvGR$pathoCNV80 <- split(patOver80df$ref, patOver80df$cnv)[names(cnvGR)]
   }
