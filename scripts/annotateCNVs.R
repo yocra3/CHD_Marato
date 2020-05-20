@@ -128,8 +128,9 @@ if(is.null(nrow(patOver20df))){
 
   if (is.null(nrow(patOver20df))){
     cnvGR$pathoCNV80 <- character(0)
+  } else {
+    cnvGR$pathoCNV80 <- split(patOver80df$ref, patOver80df$cnv)[names(cnvGR)]
   }
-  cnvGR$pathoCNV80 <- split(patOver80df$ref, patOver80df$cnv)[names(cnvGR)]
 }
 
 
