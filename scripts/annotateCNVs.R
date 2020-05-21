@@ -40,7 +40,7 @@ clinvar <- readVcf(clinvarCNVFile)
 
 segDups <- read.table(gzfile(segDupsFile), comment.char = "", header = TRUE)
 gencodeGR <- readGFFAsGRanges(gencodeFile)
-omim <- read.table(gzfile(omimFile), sep = "\t", quote = "")
+omim <- read.table(gzfile(omimFile), sep = "\t", quote = "", as.is = TRUE)
 colnames(omim) <- c("chromosome", "start", "end", "cytogenetic_loc", "cytogenetic_loc2",
                     "MIM_Number", "Symbols", "Gene_Name", "Approved_Symbol",
                     "EntrezID", "EnsemblID", "Comments", "Phenotypes", "Mouse Gene Symbol/ID")
@@ -168,6 +168,10 @@ omimOver <- findOverlaps(cnvGR, omimGR)
 omimList <- split(omimGR$gene_name[to(omimOver)], names(cnvGR)[from(omimOver)])
 cnvGR$omimGENES <- omimList[names(cnvGR)]
 
+omimList.ensem <- split(omimGR$ensemblID[to(omimOver)], names(cnvGR)[from(omimOver)])
+omimList.pheno <- lapply(omimList.ensem, function(x) omim[omim$EnsemblID %in% x, "Phenotypes"])
+cnvGR$omimPHENO <- omimList.pheno[names(cnvGR)]
+
 ## Output vcfs
 cnvGR$POS <- NULL
 
@@ -175,7 +179,7 @@ cnvGR$POS <- NULL
 mcolsdf <- mcols(cnvGR)
 newCols <- c("commonCNV", "commonCNV20", "commonCNV80", "clinCNV",
   "beningCNV20", "beningCNV80", "pathoCNV20", "pathoCNV80", "segDups50", "segDups90",
-  "gencodeGENES", "gencodeEXONS", "omimGENES")
+  "gencodeGENES", "gencodeEXONS", "omimGENES", "omimPHENO")
 pasteCol <- function(col) vapply(col, paste, collapse = "|", character(1))
 for(var in newCols) mcolsdf[[var]] <- pasteCol(mcolsdf[[var]])
 info(cnv) <- mcolsdf
@@ -193,7 +197,8 @@ Description = c("any overlap with common calls from nstd186 (AF > 0.01)",
   "overlap with segmental duplications from UCSC. Segmental duplication contains >90% sample CNV",
   "overlap with GENCODE genes",
   "overlap with exons",
-  "overlap with OMIM genes"))
+  "overlap with OMIM genes",
+  "phenotypes of OMIM genes"))
 rownames(newFields) <- newCols
 info(header(cnv)) <- rbind(info(header(cnv)), newFields)
 

@@ -325,7 +325,6 @@ process annotateVCF {
 /*
 * Prioritize variants:
 * - Remove CNVs with overlap > 20% with commonCNVs
-* - Remove CNVs with overlap > 20% with benign CNVs
 * - Remove CNVs with overlap > 50% with segmental duplications
 * - Select CNVs with overlap > 80% pathogenic variants (subset1)
 * - Select CNVs overlapping exons in OMIM genes (subset2)

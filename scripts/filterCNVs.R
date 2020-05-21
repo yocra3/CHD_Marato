@@ -4,7 +4,6 @@
 #' Prioritize CNVs are reformat data from CNV
 #' Remove CNVs that fulfill these criteria:
 #' - Common CNVs: reference CNV contains >20% sample CNV. Common calls are from nstd186 (AF > 0.01)
-#' - ClinVar Bening CNVs: overlap with ClinVar benign or likely benign calls from nstd102. Reference CNV contains >20% sample CNV.
 #' - Segmental Duplications: overlap with segmental duplications from UCSC. Segmental duplication contains >50% sample CNV.
 #' Create three tables with selected CNVs:
 #' - Pathogenic: overlap with ClinVar pathogenic or likely pathogenic calls from nstd102. Sample CNV contains >80% reference CNV.
@@ -33,10 +32,6 @@ ini <- nrow(vars)
 com <- sum(vars$commonCNV20 != "")
 vars.com <- vars[vars$commonCNV20 == "", ]
 
-## Remove benign CNVS
-ben <- sum(vars.com$beningCNV20 != "")
-vars.ben <- vars.com[vars.com$beningCNV20 == "", ]
-
 ## Remove CNVS in segmental Duplications
 seg <- sum(vars.ben$segDups50 != "")
 vars.filt <- vars.ben[vars.ben$segDups50 == "", ]
@@ -56,7 +51,7 @@ gencode <- nrow(vars.gencode)
 
 # Create Excel sheets ####
 createGRfromVCF <- function(vcf){
-  
+
   cnvGR <- rowRanges(vcf)
   mcols(cnvGR) <- info(vcf)
   cnvGR$POS <- start(cnvGR)
@@ -66,13 +61,13 @@ createGRfromVCF <- function(vcf){
 }
 
 createReportTable <- function(filtTab, cnv){
-  
+
   ## Select columns
-  selCols <- c("SVLEN", "SVTYPE", "commonCNV", "clinCNV", "gencodeGENES", "omimGENES")
+  selCols <- c("SVLEN", "SVTYPE", "commonCNV", "clinCNV", "gencodeGENES", "omimGENES", "omimPHENO")
   df <- filtTab[, selCols]
   cnv.filt <- cnv[rownames(df), ]
-  
-  df$ReadDepth <- vapply(geno(cnv.filt)$NRD, function(x) 
+
+  df$ReadDepth <- vapply(geno(cnv.filt)$NRD, function(x)
     mean(as.numeric(strsplit(x, "|", fixed = TRUE)[[1]])), numeric(1))
   df$E <- geno(cnv.filt)$E[, 1]
   df$q0 <- geno(cnv.filt)$q0[, 1]
@@ -88,18 +83,17 @@ gencodedf <- createReportTable(vars.gencode, cnv)
 sumTable <- data.frame(Description = c(
   "Initial Number CNVs",
   "Common CNVs",
-  "ClinVar Benign CNVs",
   "CNVs in Segmental Duplications",
   "Total ClinVar Pathogenic CNVs",
   "Total CNVs in OMIM genes",
   "Total CNVs in other GENCODE genes"),
-  Number = c(ini, com, ben, seg, path, omim, gencode))
+  Number = c(ini, com, seg, path, omim, gencode))
 
-write.xlsx(list(pathdf, omimdf, gencodedf, sumTable), 
+write.xlsx(list(pathdf, omimdf, gencodedf, sumTable),
            file = outFile,
            rowNames = FALSE,
-           colNames = TRUE, 
+           colNames = TRUE,
            sheetName = c("ClinVar Pathogenic CNVs",
-                         "CNVs in OMIM genes", 
+                         "CNVs in OMIM genes",
                          "CNVs in GENCODE genes",
                          "Prioritization summary"))
