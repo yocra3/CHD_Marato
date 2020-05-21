@@ -176,7 +176,7 @@ mcolsdf <- mcols(cnvGR)
 newCols <- c("commonCNV", "commonCNV20", "commonCNV80", "clinCNV",
   "beningCNV20", "beningCNV80", "pathoCNV20", "pathoCNV80", "segDups50", "segDups90",
   "gencodeGENES", "gencodeEXONS", "omimGENES")
-pasteCol <- function(col) vapply(col, paste, collapse = ",", character(1))
+pasteCol <- function(col) vapply(col, paste, collapse = "|", character(1))
 for(var in newCols) mcolsdf[[var]] <- pasteCol(mcolsdf[[var]])
 info(cnv) <- mcolsdf
 
