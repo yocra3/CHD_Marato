@@ -33,8 +33,8 @@ com <- sum(vars$commonCNV20 != "")
 vars.com <- vars[vars$commonCNV20 == "", ]
 
 ## Remove CNVS in segmental Duplications
-seg <- sum(vars.ben$segDups50 != "")
-vars.filt <- vars.ben[vars.ben$segDups50 == "", ]
+seg <- sum(vars.com$segDups50 != "")
+vars.filt <- vars.com[vars.com$segDups50 == "", ]
 
 # Create sets ####
 ## Create pathogenic set
