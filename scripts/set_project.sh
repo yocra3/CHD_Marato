@@ -49,3 +49,20 @@ mkdir results/methylation/SNPs
 
 mkdir scripts
 mkdir workflows
+
+## Function to extract VCFs from zip to folder (run in /home/SHARED/PROJECTS/CHD_MARATO/data/WGS/VCFs/)
+function extractVCF {
+        
+    unzip $2/$1.zip -d /home/SHARED/PROJECTS/CHD_MARATO/data/WGS/VCFs/ -x *fastq*
+    rm *.xls*
+    rm *bam*
+    rm *summary*
+    rm downloadzip.log 
+    vcf=$(basename "`echo $1*.vcf.gz`" .gz)
+    gunzip ${vcf}.gz
+    bgzip $vcf
+    tabix -p vcf ${vcf}.gz
+}
+
+
+

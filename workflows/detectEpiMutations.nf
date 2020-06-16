@@ -1,5 +1,5 @@
 /*
- * Extract SNPs present in Illumina 450K from WGS data
+ * Detect epimutations 
  */
 
 // Override baseDir from nextflow repository to current directory

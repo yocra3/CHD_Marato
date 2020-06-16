@@ -52,3 +52,7 @@ nextflow run yocra3/CHD_Marato/workflows/RNAseq_splice_aberrations_FRASER.nf \
 ## CNV calling
 nextflow run yocra3/CHD_Marato/workflows/callCNVs.nf --bams "data/WGS/BAMS/*.bam" \
 --genome "hg19" --sampleAnnot data/CHD_marato_sampleSummary.tab --version v1
+
+## ASE analysis
+nextflow yocra3/CHD_Marato/workflows/RNAseq_AllelicExpression.nf --bamsDir 'results/RNAseq/sortAlignment/v1/*.bam' \
+--vcfDir 'data/WGS/VCFs/*.vcf.gz' --mapFile data/sample_WGSbatch_map.tab -resume --version v1
