@@ -9,6 +9,11 @@
 nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf \
 -with-docker yocra3/rsession_chd_marato:release-1.2.4 --version v2
 
+## Prepare phenotypes
+nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf \
+-with-docker yocra3/rsession_chd_marato:release-1.2.4 --version v3
+
+
 ## Get SNPs from WGS present in methylation data
 nextflow run  yocra3/CHD_Marato/workflows/prepareSNPsMethylation.nf --inFold data/ExomeVCFs \
 --sampleAnnot data/CHD_marato_sampleSummary.tab -with-docker --version v1
@@ -54,5 +59,5 @@ nextflow run yocra3/CHD_Marato/workflows/callCNVs.nf --bams "data/WGS/BAMS/*.bam
 --genome "hg19" --sampleAnnot data/CHD_marato_sampleSummary.tab --version v1
 
 ## ASE analysis
-nextflow yocra3/CHD_Marato/workflows/RNAseq_AllelicExpression.nf --bamsDir 'results/RNAseq/sortAlignment/v1/*.bam' \
+nextflow run yocra3/CHD_Marato/workflows/RNAseq_AllelicExpression.nf --bamsDir 'results/RNAseq/sortAlignment/v1/*.bam' \
 --vcfDir 'data/WGS/VCFs/*.vcf.gz' --mapFile data/sample_WGSbatch_map.tab -resume --version v1

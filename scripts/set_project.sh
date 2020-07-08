@@ -37,6 +37,9 @@ rm data/WGS/BAMS/624604*
 rm data/WGS/BAMS/62460506_S1.bam
 rm data/WGS/BAMS/62460517_S2.bam
 
+## Add links to WGS fastqs
+mkdir data/WGS/FASTQ/
+ln -s /media/carlos/PORSCHE_1/RAW_DATA/Marato_Fetus/20180104_aeav/*.fastq.gz data/WGS/FASTQ/
 
 ### Copy quantification data from dropbox
 ### Download general sample data to data folder

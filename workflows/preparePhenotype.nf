@@ -35,7 +35,7 @@ process processPhenotypes {
     file 'log.txt' into logCh
 
     """
-    Rscript $baseDir/scripts/preparePhenotypes.R $inFold
+    Rscript $baseDir/scripts/preparePhenotypesv2.R $inFold
     echo "$logText" > log.txt
     """
 }
