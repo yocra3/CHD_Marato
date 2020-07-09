@@ -9,7 +9,7 @@
 nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf \
 -with-docker yocra3/rsession_chd_marato:release-1.2.4 --version v2
 
-## Prepare phenotypes
+## Prepare phenotypes (v3 - after classifying samples with other analysis)
 nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf \
 -with-docker yocra3/rsession_chd_marato:release-1.2.4 --version v3
 
