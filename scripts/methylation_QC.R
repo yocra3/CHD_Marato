@@ -44,7 +44,7 @@ qc.parameters <- meffil.qc.parameters(
 pcs <- 5 
 
 ## Batch variables
-batch_var <- c("Slide", "Array", "Sex", "GestAge", "Status", "pathGroup", "GeneticCause", "SampleBatch")
+batch_var <- c("Slide", "Array", "Sex", "GestAge", "Status", "pathGroup", "MolecularCause", "SampleBatch", "Rearrangements", "Del22q11", "N_genes")
 
 #'#################################################################################
 #'#################################################################################
