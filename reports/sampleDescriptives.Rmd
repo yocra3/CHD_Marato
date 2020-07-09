@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(ggplot2)
-load("../results/phenotypes/v2/pheno.Rdata")
+load("../results/phenotypes/v3/pheno.Rdata")
 
 getSum <- function(vec, type = "continuous"){
   if (type == "continuous"){
@@ -29,6 +29,13 @@ getSum <- function(vec, type = "continuous"){
   }
 }
 ```
+
+Remove G3CS9CO (trisomy of chromosome 21).
+
+```{r}
+pheno <- subset(pheno, SampleID != "G3CS9CO")
+```
+
 
 # Whole population
 
@@ -75,10 +82,10 @@ getSum(pheno$pathGroup, type = "categorical")
 
 Most frequent groups are G2 (conontruncal malformations) and G4 (HLHS). G5 have very few samples to be considered an independent group.
 
-## Genetic Cause
+## Molecular Cause
 
 ```{r}
-getSum(pheno$GeneticCause, type = "categorical")
+getSum(pheno$MolecularCause, type = "categorical")
 ```
 
 For 19 case samples, we have an identified genetic cause (either a mutation from WGS or Del22q).
@@ -160,9 +167,9 @@ We do not observe differences in gestational age between the CHD groups.
 
 ## Genetic Cause
 ```{r}
-table(pheno$GeneticCause, pheno$pathGroup)
+table(pheno$MolecularCause, pheno$pathGroup)
 
-ggplot(pheno, aes(x = GeneticCause, fill = GeneticCause)) +
+ggplot(pheno, aes(x = MolecularCause, fill = MolecularCause)) +
   geom_bar() +
   facet_grid(~  pathGroup)
 ```

@@ -66,11 +66,8 @@ genetics$SampleID <- gsub(" |-|_Mallorca", "", genetics$ID)
 genetics$Del22q11 <- genetics$`22q11.2del`
 
 ## Add missing sex to phenotypes
-genSex <- unique(genetics[, c("ID", "Sex")]) %>%
-  mutate(Sex = gsub("*", "", Sex, fixed = TRUE)) %>%
-  data.frame()
-rownames(genSex) <- genSex$ID
-
+genSex <- data.frame(genetics)
+rownames(genSex) <- genSex$SampleID
 pheno$Sex[is.na(pheno$Sex)] <- genSex[pheno$SampleID[is.na(pheno$Sex)], "Sex"]
 
 ## Merge pheno with genetic summary

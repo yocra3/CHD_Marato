@@ -16,13 +16,13 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ```{r, echo = FALSE}
 library(minfi)
-vers <- "v2"
+vers <- "v3"
 QC_folder <- paste0("../results/methylation/QC_intermediate/", vers)
 final_folder <- paste0("../results/methylation/finalQC_files/", vers)
 ```
 
 
-This report describes the main steps followed in methylation QC data. Additional information can be found in reports generated with meffil, which are found in this same folder.
+This report describes the main steps followed in methylation QC data. Additional information can be found in reports generated with meffil, which are found in this same folder. Previously, samples G3CS9CO was removed as it had a trisomy of chr21.
 
 # Samples quality control
 
