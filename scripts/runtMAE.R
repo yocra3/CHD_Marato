@@ -51,8 +51,13 @@ genesMAE <- sapply(genes, function(g){
     return(mean(resmae_gene$MAE == "biallelic"))
   }
 })
-a <- subset(resMAE, GENEID == "26155" & LOCATION == "coding")
-
+genesDF <- data.frame(GENEID = names(genesMAE), 
+                      gene_MAE = ifelse(is.na(genesMAE), "non-coding", 
+                                              ifelse(genesMAE > 0.5, "biallelic", "monoallelic")),
+                      row.names = NULL)
+                      
+resMAE <- resMAE %>%
+  left_join(genesDF, by = "GENEID")
 
 
 save(resMAE, file = "tMAE_res.Rdata")
