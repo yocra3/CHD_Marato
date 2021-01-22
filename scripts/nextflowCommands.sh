@@ -61,3 +61,7 @@ nextflow run yocra3/CHD_Marato/workflows/callCNVs.nf --bams "data/WGS/BAMS/*.bam
 ## ASE analysis
 nextflow run yocra3/CHD_Marato/workflows/RNAseq_AllelicExpression.nf --bamsDir 'results/RNAseq/sortAlignment/v1/*.bam' \
 --vcfDir 'data/WGS/VCFs/*.vcf.gz' --mapFile data/sample_WGSbatch_map.tab -resume --version v1
+
+
+## Repeat MuliQC with all samples in a report
+multiqc results/Reports/  --ignore *L00* --outdir reports/multiQC
