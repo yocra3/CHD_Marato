@@ -51,7 +51,7 @@ tab.vars <- tab[grepl("Strelka", tab$Sample), grepl("Bcftools", colnames(tab)) |
 tab.vars$Status <- ifelse(grepl("G3", tab.vars$Sample), "Control", "Case")
 
 ## Remove sample with T21
-tab.vars <- subset(tab.vars, Sample != "Strelka_G3CS9CO_variants")
+tab.vars <- subset(tab.vars, Sample != "Strelka_G3CS5CO_variants")
 
 computeIQR(tab.vars$Bcftools.Stats_mqc.generalstats.bcftools_stats.number_of_records)
 computeIQR(tab.vars$Bcftools.Stats_mqc.generalstats.bcftools_stats.number_of_SNPs)

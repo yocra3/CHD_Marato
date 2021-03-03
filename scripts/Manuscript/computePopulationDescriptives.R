@@ -44,7 +44,7 @@ pheno$pathGroup[pheno$pathGroup == "G3"] <- "Control"
 pheno$Status <- factor(ifelse(is.na(pheno$pathGroup) | pheno$pathGroup != "Control", "Case", "Control"))
 
 ## Remove sample with T21
-pheno <- subset(pheno, SampleID != "G3CS9CO")
+pheno <- subset(pheno, SampleID != "G3CS5CO")
 
 ## Compare gestational age between the groups
 wilcox.test(GestAge ~ Status, pheno)
