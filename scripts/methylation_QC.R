@@ -69,8 +69,8 @@ combSheet <- mutate(combSheet, Sex = substring(Sex, 1, 1))
 ## Remove IVD sample - not belongs to the project
 combSheet <- subset(combSheet, Sample_Name != "IVD")
 
-## Remove G3CS9CO sample - control with T21 
-combSheet <- subset(combSheet, Sample_Name != "G3CS9CO")
+## Remove G3CS5CO sample - control with T21 
+combSheet <- subset(combSheet, Sample_Name != "G3CS5CO")
 
 #'#################################################################################
 #'#################################################################################

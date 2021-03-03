@@ -23,8 +23,8 @@ nextflow run ./workflows/prepareSNPsMethylation.nf --inFold results/VariantCalli
 nextflow run yocra3/CHD_Marato/workflows/methylation_QC_normalization.nf --inFold "./data/methylation/" \
 --sampleSheet sampleSheet_Roser_EPIC_concatenados.csv \
 --phenoPath results/phenotypes/v3/pheno.Rdata --cores 9 \
---genosPath results/methylation/SNPs/v1/genos.raw --methyAnnot data/EPIC.hg19.manifest.rds \
---version v3 -with-docker yocra3/rsession_chd_marato:release-1.2.4
+--genosPath results/methylation/SNPs/v2/genos.raw --methyAnnot data/EPIC.hg19.manifest.rds \
+--version v4 -with-docker yocra3/rsession_chd_marato:release-1.2.4
 
 ## Epimutations detection
 nextflow run yocra3/CHD_Marato/workflows/detectEpiMutations.nf --sampleAnnot results/phenotypes/v3/pheno.tab \
