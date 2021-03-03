@@ -140,10 +140,9 @@ process annotateVCF {
   file("mergedVcf.rs.gz") into annotVcf
 
   """
-  awk '{if(\$0 !~ /^#/) print "chr"\$0; else print \$0}' ${vcfRefPos} > 1000KG.pos.chr.vcf ## Add chr to name to match exome vcfs
-  bgzip 1000KG.pos.chr.vcf
-  tabix -p vcf 1000KG.pos.chr.vcf.gz
-  bcftools annotate --annotations 1000KG.pos.chr.vcf.gz \
+  bgzip ${vcfRefPos}
+  tabix -p vcf ${vcfRefPos}.gz
+  bcftools annotate --annotations ${vcfRefPos}.gz \
     --columns ID --threads 20 --output-type z\
     --output mergedVcf.rs.gz ${mergedVcf}
   """
