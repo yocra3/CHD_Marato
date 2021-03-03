@@ -20,7 +20,7 @@ nextflow run ./workflows/prepareSNPsMethylation.nf --inFold results/VariantCalli
 -resume
 
 ## QC and normalization of methylation data
-nextflow run yocra3/CHD_Marato/workflows/methylation_QC_normalization.nf --inFold "./data/methylation/" \
+nextflow run ./workflows/methylation_QC_normalization.nf --inFold "./data/methylation/" \
 --sampleSheet sampleSheet_Roser_EPIC_concatenados.csv \
 --phenoPath results/phenotypes/v3/pheno.Rdata --cores 9 \
 --genosPath results/methylation/SNPs/v2/genos.raw --methyAnnot data/EPIC.hg19.manifest.rds \

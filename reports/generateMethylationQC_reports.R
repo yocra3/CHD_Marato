@@ -9,7 +9,7 @@
 library(meffil)
 
 ## Define names
-vers <- "v3"
+vers <- "v4"
 QC_folder <- paste0("results/methylation/QC_intermediate/", vers)
 reportsName <- paste("reports/meffil", vers, Sys.Date(), sep = "_")
 

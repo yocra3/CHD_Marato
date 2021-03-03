@@ -54,8 +54,14 @@ pheno$SampleID <- gsub(" |-|Mallorca|_", "", pheno$SampleID)
 
 ## Add Pathologic groups
 pheno$pathGroup <- sapply(strsplit(pheno$SampleID, "CS"), `[`, 1)
-pheno$pathGroup[!pheno$pathGroup %in% paste0("G", 1:5)] <- NA
+pheno$pathGroup[!pheno$pathGroup %in% paste0("G", 1:5)] <- "G5"
 pheno$pathGroup[pheno$pathGroup == "G3"] <- "Control"
+
+## Add Pathologic groups
+pheno$pathClass <- ifelse(pheno$pathGroup == "G2", "Conotruncal Malformations",
+						  ifelse(pheno$pathGroup == "Control", "Control", 
+						  	   ifelse(pheno$pathGroup == "G4", "Left heart hypoplasia", "Other malformations")))
+
 
 ## Add Status
 pheno$Status <- factor(ifelse(is.na(pheno$pathGroup) | pheno$pathGroup != "Control", "Case", "Control"))
