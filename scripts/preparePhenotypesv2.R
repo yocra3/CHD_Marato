@@ -90,7 +90,7 @@ pheno$SampleBatch <- ifelse(pheno$SampleID %in% batch1$SampleID, "VHIR1",
                                    ifelse(!grepl("CO$", pheno$SampleID), "Mallorca", "Lab")))
 
 ## Create final object with created variables
-finalVars <- c("SampleID", "Sex", "GestAge", "Status", "pathGroup", "MolecularCause", 
+finalVars <- c("SampleID", "Sex", "GestAge", "Status", "pathGroup", "pathClass", "MolecularCause", 
                "Rearrangements", "Del22q11", "SampleBatch", "N_genes")
 pheno <- pheno[, finalVars]
 
