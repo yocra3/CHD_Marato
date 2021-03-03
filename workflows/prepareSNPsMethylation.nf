@@ -6,7 +6,6 @@
 baseDir = "$PWD"
 date = java.time.LocalDate.now()
 params.outdir = "results/methylation/SNPs/${date}"
-params.sampleAnnot = baseDir
 params.inFold = baseDir
 params.vcfref = "/home/SHARED/DATA/REFERENCES/GRCh37/SNP_annotation/All_20180418.vcf.gz" //Downloaded from ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz
 
@@ -18,7 +17,6 @@ container_R = 'yocra3/rsession_chd_marato:release-1.2.3'
  * Convert parameters with strings to files
  */
 vcfref = file(params.vcfref)
-sampleAnnot = file(params.sampleAnnot)
 
 // Store workflow info
 workflowInfo = """
@@ -166,7 +164,6 @@ process processPhenotypes {
 
    	input:
     file(annotVcf) from annotVcf
-    file (sampleTab) from sampleAnnot
    	val logText from "$workflowInfo"
 
     output:
@@ -174,10 +171,7 @@ process processPhenotypes {
     file 'log.txt' into logCh
 
     """
-    cut -f23,30 ${sampleTab} | tail -n +2 | awk '{print \$1, \$1, \$2, \$2}' > sample.map
-    sed -i 's/-//g' sample.map
     plink --vcf ${annotVcf} --make-bed --out genos
-    plink -bfile genos --update-ids sample.map --recodeA --out genos
     echo "$logText" > log.txt
     """
 }

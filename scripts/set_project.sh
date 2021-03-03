@@ -67,5 +67,7 @@ function extractVCF {
     tabix -p vcf ${vcf}.gz
 }
 
-
+### Copy VCFs from UPF cluster to PC
+mkdir -p results/VariantCalling/SNV/
+rsync -azvh --progress cruizg@marvin.s.upf.edu:/homes/users/cruizg/projects/CHD_MARATO/results/VariantCalling/SNV/ results/VariantCalling/SNV/ 
 
