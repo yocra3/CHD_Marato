@@ -64,7 +64,7 @@ process runQC_normalization {
 }
 
 // Correct Methylation with ComBat
-process prepareGenomicRatioSets {
+process applyComBat {
 
  	publishDir "${params.qcdir}/${date}", mode: 'copy'
 
