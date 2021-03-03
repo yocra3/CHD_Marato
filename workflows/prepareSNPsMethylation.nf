@@ -76,7 +76,7 @@ process getSNPsPos {
 
   """
   vcftools --gzvcf ${vcfref} --snps ${snpNames} --recode --out 1000KG.pos
-  zgrep -v "#" 1000KG.pos.recode.vcf | cut -f1,2 | awk '{print "chr"\$0}' > snps_pos.txt
+  zgrep -v "#" 1000KG.pos.recode.vcf | cut -f1,2 | awk '{print \$0}' > snps_pos.txt
   """
 }
 
