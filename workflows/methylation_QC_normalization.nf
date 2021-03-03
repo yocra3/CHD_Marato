@@ -63,6 +63,27 @@ process runQC_normalization {
   """
 }
 
+// Correct Methylation with ComBat
+process prepareGenomicRatioSets {
+
+ 	publishDir "${params.qcdir}/${date}", mode: 'copy'
+
+  if ( params.version != null ){
+    publishDir "${params.qcdir}/${params.version}", mode: 'copy'
+  }
+
+  input:
+  file 'gset.Rdata' from gset
+
+  output:
+  file 'gset.normalizedComBat.GenomicRatioSet.Rdata' into gset_combat
+
+  """
+  Rscript $baseDir/scripts/apply_ComBat.R gset.Rdata
+  """
+}
+
+
 // Create GenomicRatioSets with filtered probes
 process prepareGenomicRatioSets {
 
@@ -73,7 +94,7 @@ process prepareGenomicRatioSets {
   }
 
   input:
-  file 'gset.Rdata' from gset
+  file 'gset.Rdata' from gset_combat
   file(methyAnnot) from methyAnnot
   val logText from "$workflowInfo"
 
