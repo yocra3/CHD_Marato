@@ -16,7 +16,7 @@ nextflow run ./workflows/preparePhenotype.nf \
 
 ## Get SNPs from WGS present in methylation data
 nextflow run ./workflows/prepareSNPsMethylation.nf --inFold results/VariantCalling/SNV/ \
---sampleAnnot data/CHD_marato_sampleSummary.tab -with-docker --version v2
+--sampleAnnot data/CHD_marato_sampleSummary.tab -with-docker yocra3/rsession_chd_marato:release-1.2.4 --version v2
 
 ## QC and normalization of methylation data
 nextflow run yocra3/CHD_Marato/workflows/methylation_QC_normalization.nf --inFold "./data/methylation/" \

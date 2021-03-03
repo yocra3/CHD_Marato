@@ -27,7 +27,7 @@ Git info: $workflow.repository - $workflow.revision [$workflow.commitId]
 Cmd line: $workflow.commandLine
 """
 
-vcfs = Channel.fromPath("${params.inFold}/*.vcf")
+vcfs = Channel.fromPath("${params.inFold}/*.vcf.gz")
 
 
 // Divide VCF variants in SNPs
