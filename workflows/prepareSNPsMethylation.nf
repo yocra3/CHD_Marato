@@ -171,7 +171,7 @@ process processPhenotypes {
     file 'log.txt' into logCh
 
     """
-    plink --vcf ${annotVcf} --make-bed --out genos
+    plink --vcf ${annotVcf} --recodeA --out genos
     echo "$logText" > log.txt
     """
 }
