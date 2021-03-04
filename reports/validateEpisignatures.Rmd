@@ -1,0 +1,170 @@
+---
+title: "ValidateEpisignatures"
+author: "Carlos Ruiz"
+date: "4/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Genetic disease might be produced by a general disregulation of DNA methylation. We explored in our dataset if the different CHD subgroups had different methylation patterns.
+
+# Episignatures definition
+
+We adapted the algorithm from PMID: 30929737 to define episignatures:
+
+1. Divide dataset 3/4 train, 1/4 test. We sampled independently each CHD class
+2. Run limma of groups each against the rest
+3. Select top 1,000 CpGs with minimum difference > 0.1
+4. Train SVM with CpGs selected in any comparison
+5. Run SVM in test dataset
+6. Repeat 4 times, to include all samples in test
+
+As a result, all samples were train 3 times and test 1. 
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(minfi)
+library(ggplot2)
+library(dendextend)
+
+
+load("../results/methylation/Episignatures/cohort.training.Rdata")
+load("../results/methylation/finalQC_files/v4/gset.autosomic.Rdata")
+load("../results/methylation/Episignatures/GSE62629.results.Rdata")
+load("../results/methylation/Episignatures/GSE62629.GenomicRatioSet.EPICcpgs.Rdata")
+
+
+pred.list <- lapply(episig_subset, function(x) x$pred_test)
+
+pred.df <- data.frame(predClass = unlist(pred.list),
+					  set = rep(1:4, lengths(pred.list)),
+					  sample = names(unlist(pred.list))) %>%
+	mutate(trueClass = gset[, sample]$pathClass,
+		   match = predClass == trueClass)
+
+table(pred.df$predClass, pred.df$trueClass)
+```
+
+Individuals classified as having other malformations are correctly classified in all sets. Next, there is a great confussion between Conotruncal Malformations and Left heart hypoplasia. Therefore, we decided to consider both categories as equivalent and repeat the analysis:
+
+```{r}
+pred.list_merge <- lapply(episig_subset_mergeClass, function(x) x$pred_test)
+
+pred.df_mrege <- data.frame(predClass = unlist(pred.list_merge),
+					  set = rep(1:4, lengths(pred.list_merge)),
+					  sample = names(unlist(pred.list_merge))) %>%
+	mutate(trueClass = gset[, sample]$pathClass,
+		   match = predClass == trueClass)
+
+table(pred.df_mrege$predClass, pred.df_mrege$trueClass)
+```
+
+After merging both categories, 41/44 (93%) of samples were correctly classified, with the exception of 2 controls and 1 individuals with other malformations that were incorrectly labeled as Conotruncal Malformations/Left heart hypoplasia.
+
+We repeated the whole process but using the whole cohort as training. 
+
+```{r}
+mat <- getBeta(gset[svm_all$feats, ])
+
+cols <- c("#000000", "#CC6666", "#9999CC", "#66CC99")
+names(cols) <- c("Control", "Conotruncal Malformations", 
+				 "Left heart hypoplasia", "Other malformations")
+
+colPlot <- cols[gset$pathClass]
+
+heatmap(mat, Rowv = NA, scale = "none", 
+		col = gray.colors(100, start = 0, end = 1),
+		ColSideColors =colPlot)
+```
+
+The features included in the classifier, clearly separated controls (black) from cases. Then, individuals with other malformations are separated from Conotruncal Malformations and left heart hypoplasia.
+
+# Validation in MBD-seq dataset
+
+We tried to validate our SVM classifier in a GEO dataset. To this end, we selected the positions in the MBD-seq matching the CpGs in the EPIC array and run the SVM classifier:
+
+```{r}
+table(pred.GSE62629)
+```
+
+All individuals were classified as Conotruncal Malformations. 
+
+To explore this effect, we run a PCA on the subset of CpGs included in the SVM and including the measurements with the array and the MBD-Seq:
+
+```{r}
+pc_comb$x %>%
+	data.frame() %>%
+	mutate(Technique = factor(rep(c("MBD-Seq", "EPIC Array"), c(ncol(gset.GSE62629.filt), ncol(gset))))) %>%
+	ggplot(aes(x = PC1, y = PC2, col = Technique)) +
+	geom_point() + 
+	theme_bw()
+```
+
+Samples are clustered by the technique, so the SVM trained with the EPIC array cannot be directly applied to the MBD-Seq dataset.
+
+Despite this, we aimed to test whether the features selected with our approach could be used to separate samples by class. 
+
+
+```{r}
+mat.GSE <- data.matrix(getBeta(gset.GSE62629.filt[svm_all$feats, ]))
+
+cols2 <- c("#000000", "blue", "green")
+names(cols2) <- c("normal", "Tetralogy of Fallot", 
+				 "ventricular septal defect")
+
+colPlot2 <- cols2[gset.GSE62629.filt$"disease state:ch1"]
+
+heatmap(mat.GSE, Rowv = NA, scale = "none", 
+		col = gray.colors(100, start = 0, end = 1),
+		ColSideColors = colPlot2)
+```
+
+We see some clustering by pathologic class, with control samples (black) on one branch, Tetratology of Fallot (blue) in the middle and ventricular septal defect (green) in the middle.
+
+Finally, we run a PCA to the CpGs in MBD-Seq dataset common in EPIC and to the features selected in the SVM classifier and compared the clustering.
+
+```{r cars}
+hcGSE <- as.dendrogram(hclust(dist(pc_GSE$x)))
+hcGSE_svm <- as.dendrogram(hclust(dist(pc_GSE_svm$x)))
+
+ord1 <- order.dendrogram(hcGSE)
+labels_colors(hcGSE) <- cols2[gset.GSE62629.filt[, ord1]$"disease state:ch1"]
+plot(hcGSE, main = "All features")
+
+ord2 <- order.dendrogram(hcGSE_svm)
+labels_colors(hcGSE_svm) <- cols2[gset.GSE62629.filt[, ord2]$"disease state:ch1"] 
+plot(hcGSE_svm, main = "SVM features")
+```
+
+Samples are more clustered by pathologic state when restricting the PCA to the features in the SVM classifier.
+
+# Features in the literature
+
+```{r}
+csvs <- dir(pattern = "SignificantCpGs", path = "../data", full = TRUE)
+tabList <- lapply(csvs, read.csv, header = TRUE)
+tabList <- lapply(tabList, function(x) {
+	colnames(x) <- x[1, ]
+	colnames(x)[1] <- "TargetID"
+	x <- x[-1, ]
+		}
+	)
+tabList[[9]] <- tabList[[9]][-1, ]
+
+cpgList <- lapply(tabList, function(x) x$TargetID)
+
+comCpGs <- sapply(cpgList, function(x) intersect(x, svm_all$feats))
+comCpGs
+
+feats.sub <- unlist(lapply(episig_subset, function(x) x$feats))
+comCpGs_sub <- sapply(cpgList, function(x) intersect(x, feats.sub))
+comCpGs_sub
+```
+
+We observed very few overlap between the probes in SVM and the probes previously reported in the literature. Nonetheless, we used a different array and a different tissue.

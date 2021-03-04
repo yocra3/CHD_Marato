@@ -14,6 +14,7 @@ ln -s /media/Lacie_1/DATA/Methylation_Marato/ data/methylation
 ln -s /media/Lacie_1/DATA/MARATÓ/RNASEQ/ data/RNAseq_fastq
 
 mkdir data/RNAseq
+mkdir data/GEO
 
 ## Add links to WGS bams
 mkdir data/WGS/
@@ -49,6 +50,7 @@ mkdir results/methylation
 mkdir results/methylation/QC_intermediate
 mkdir results/methylation/finalQC_files
 mkdir results/methylation/SNPs
+mkdir results/methylation/Episignatures
 
 mkdir scripts
 mkdir workflows

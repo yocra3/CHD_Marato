@@ -66,3 +66,6 @@ nextflow run yocra3/CHD_Marato/workflows/RNAseq_AllelicExpression.nf --bamsDir '
 
 ## Repeat MuliQC with all samples in a report
 multiqc results/Reports/  --ignore *L00* --outdir reports/multiQC
+
+## Run docker in project folder
+docker run -v $PWD:$PWD -it yocra3/rsession_chd_marato:release-1.2.5 bash
