@@ -27,8 +27,8 @@ nextflow run ./workflows/methylation_QC_normalization.nf --inFold "./data/methyl
 --version v4 -with-docker yocra3/rsession_chd_marato:release-1.2.4
 
 ## Epimutations detection
-nextflow run yocra3/CHD_Marato/workflows/detectEpiMutations.nf --sampleAnnot results/phenotypes/v3/pheno.tab \
---gset results/methylation/finalQC_files/v3/gset.autosomic.Rdata --version v4 \
+nextflow run workflows/detectEpiMutations.nf --sampleAnnot results/phenotypes/v3/pheno.tab \
+--gset results/methylation/finalQC_files/v4/gset.autosomic.Rdata --version v5 \
 -with-docker yocra3/rsession_chd_marato:release-1.2.4
 
 ## RNAseq quantification
