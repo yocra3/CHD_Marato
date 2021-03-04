@@ -1,0 +1,93 @@
+---
+title: "Exploration of Epimutations"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Summary
+
+We run our algorithm to detect epimutations. In this document, we will plot all the candidate regions to select those more likely to harbour an epimutation.
+
+```{r, echo = FALSE}
+library(minfi)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(Gviz)
+library(biomaRt)
+
+vers.epiMut <- "v4"
+vers.QC <- "v3"
+load(paste0("../results/methylation/finalQC_files/", vers.QC, "/gset.autosomic.Rdata"))
+bumps <- read.delim(paste0("../results/methylation/Epimutations/", vers.epiMut, "/bumpsSel.txt"), 
+                    header = FALSE)
+colnames(bumps) <- c("chromosome", "start", "end", "value", "area", "cluster", "indexStart",
+                     "indexEnd", "L", "clusterL", "Sample", "Anova")
+```
+
+
+# Plots
+
+```{r}
+makePlot <- function(row, bumps){
+
+  sample <- bumps[row, "Sample"]
+  idx <- bumps[row, "indexStart"]:bumps[row, "indexEnd"]
+  
+  beta <- data.frame(getBeta(gset[idx, ]))
+  beta$pos <- start(rowRanges(gset[idx, ]))
+  beta %>%
+    gather("Sample", "Methylation", seq_len(ncol(gset))) %>%
+    mutate(Sample = ifelse(Sample == "X16A66", "16A66", Sample)) %>%
+    ggplot(aes(x = pos, y = Methylation, color = Sample == sample, group = Sample)) +
+    geom_point() + 
+    geom_line() +
+    ggtitle(paste(sample, bumps[row, "chromosome"], bumps[row, "start"], bumps[row, "end"])) +
+    theme_bw() +
+    scale_y_continuous(limits = c(0, 1)) +
+    theme(legend.position = "none",
+           plot.title = element_text(hjust = 0.5))
+}
+
+makePlotGviz <- function(row, bumps){
+  
+ 
+  sample <- as.character(bumps[row, "Sample"])
+  idx <- bumps[row, "indexStart"]:bumps[row, "indexEnd"]
+  chr <- as.character(bumps[row, "chromosome"])
+  start <- bumps[row, "start"]
+  end <- bumps[row, "end"]
+  range <- paste0(chr, ":", start, "-", end)
+  
+  basetracks <- list(Gviz::IdeogramTrack(genome = "hg19", chromosome = chr), 
+                     Gviz::GenomeAxisTrack())
+  
+  bm <- useMart(host = "grch37.ensembl.org", biomart = "ENSEMBL_MART_ENSEMBL",
+                dataset = "hsapiens_gene_ensembl")
+  biomTrack <- BiomartGeneRegionTrack(genome = "hg19", chromosome = chr, start = start, 
+                                      end = end, name = "ENSEMBL", biomart = bm)
+
+  beta <- data.frame(getBeta(gset[idx, ]))
+  dtrack <- DataTrack(data = beta, start = start(rowRanges(gset[idx, ])), width = 1,
+                      chromosome = chr, genome = "hg19")
+  plotTracks(c(basetracks, biomTrack, dtrack),
+             groups = ifelse(colnames(gset) == sample, sample, "All"), type = "b",
+             transcriptAnnotation = "SYMBOL")
+  }
+
+```
+
+```{r, fig.wide = TRUE}
+lapply(seq_len(nrow(bumps)), function(i) {
+  print(makePlot(i, bumps = bumps))
+  makePlotGviz(i, bumps = bumps)
+})
+```
+

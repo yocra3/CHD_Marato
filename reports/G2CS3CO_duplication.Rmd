@@ -1,0 +1,55 @@
+---
+title: "Duplication in G2CS3CO sample"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(Gviz)
+library(GenomicRanges)
+
+targetRange <- GRanges("1:145000000-149000000")
+
+options(ucscChromosomeNames = FALSE)
+
+basetracks <- list(IdeogramTrack(genome = "hg19", chromosome = "chr1"), 
+                                 Gviz::GenomeAxisTrack())
+
+segDups <- UcscTrack(genome = "hg19", chromosome = "chr1", 
+                     track= "genomicSuperDups", from = 140000000, 
+                     to = 159000000, shape = "box",
+                     trackType="AnnotationTrack", 
+                     collapse = TRUE,
+                     stacking = "dense",
+                     start = "chromStart", end = "chromEnd", 
+                     strand = "strand", fill="#8282d2", 
+                     name = "UCSC Segmental Duplications")
+
+dupGR <- GRanges(c("chr1:146466401-146778300", "chr1:146899501-147424800"))
+
+dupTrack <- AnnotationTrack(dupGR, feature = c("reg1", "reg2"),
+                            fill = "lightgrey",
+                            featureAnnotation = "feature",  
+                            name = "TAR deletions")
+
+depth <- read.table("G2CS3CO_readDepth_dup.txt")
+colnames(depth) <- c("chromosome", "start", "depth")
+depth$chromosome <- paste0("chr", depth$chromosome)
+depthGR <- makeGRangesFromDataFrame(depth, end.field = "start", keep.extra.columns = TRUE)
+
+# depthGR.filt <- subsetByOverlaps(depthGR, segDups@range, invert = TRUE)
+
+depthTrack <- DataTrack(depthGR, type = "smooth", ylim = c(0, 100), span = 0.01)
+
+plotTracks(c(basetracks, dupTrack, depthTrack, segDups),  from = 144000000, to = 154000000)
+```

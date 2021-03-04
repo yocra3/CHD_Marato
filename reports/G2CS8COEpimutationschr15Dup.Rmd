@@ -1,0 +1,69 @@
+---
+title: "Exploration of Epimutations"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Summary
+
+We run our algorithm to detect epimutations. In this document, we will plot all the candidate regions to select those more likely to harbour an epimutation.
+
+```{r, echo = FALSE}
+library(minfi)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(cowplot)
+
+vers.epiMut <- "v3"
+vers.QC <- "v2"
+load(paste0("../results/methylation/finalQC_files/", vers.QC, "/gset.autosomic.Rdata"))
+bumps <- read.delim(paste0("../results/methylation/Epimutations/", vers.epiMut, "/bumpsAll.txt"), 
+                    header = FALSE)
+colnames(bumps) <- c("chromosome", "start", "end", "value", "area", "cluster", "indexStart",
+                     "indexEnd", "L", "clusterL", "Sample", "Anova")
+```
+
+
+# Plots
+
+```{r}
+makePlot <- function(row, bumps){
+
+  sample <- bumps[row, "Sample"]
+  idx <- bumps[row, "indexStart"]:bumps[row, "indexEnd"]
+  
+  beta <- data.frame(getBeta(gset[idx, ]))
+  beta$pos <- start(rowRanges(gset[idx, ]))
+  beta %>%
+    gather("Sample", "Methylation", seq_len(ncol(gset))) %>%
+    mutate(Sample = ifelse(Sample == "X16A66", "16A66", Sample)) %>%
+    ggplot(aes(x = pos, y = Methylation, color = Sample == sample, group = Sample)) +
+    geom_point() + 
+    geom_line() +
+    ggtitle(paste(sample, bumps[row, "chromosome"], bumps[row, "start"], bumps[row, "end"])) +
+    theme_bw() +
+    scale_y_continuous(limits = c(0, 1)) +
+    theme(legend.position = "none",
+           plot.title = element_text(hjust = 0.5))
+}
+```
+
+G2CS8CO has a duplication in chromosome 15. This region contains some imprinted regions. The following imprinted regions present a different methylation pattern in G2CS8CO (mean methylation around 75%) than in the rest of samples (mean methylation around 50%).
+ 
+```{r}
+impBumps <-  subset(bumps, Sample == "G2CS8CO" & chromosome == "chr15")
+rows <-  c(4, 8, 2, 3) 
+plots <- lapply(rows, makePlot, bumps = impBumps)
+plot_grid(plotlist = plots, nrow = 2, ncol = 2)
+```
+
+
+

@@ -1,0 +1,130 @@
+---
+title: "Methylation QC"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r, echo = FALSE}
+library(minfi)
+vers <- "v3"
+QC_folder <- paste0("../results/methylation/QC_intermediate/", vers)
+final_folder <- paste0("../results/methylation/finalQC_files/", vers)
+```
+
+
+This report describes the main steps followed in methylation QC data. Additional information can be found in reports generated with meffil, which are found in this same folder. Previously, samples G3CS9CO was removed as it had a trisomy of chr21.
+
+# Samples quality control
+
+The first step was filtering out samples with bad quality. To this end, we run QC with meffil which checks the following features:
+
+- Sex missmatch between reported sex and sex detected with methylation
+- Deviation in the ratio between median methylated signal and median unmethylated signal as compared with the whole group.
+- Deviation in the control probes values from the population
+- Sample call rate
+- Proportion of bead numbers
+- Concordance between Illumina SNP genotypes and WGS genotypes.
+
+```{r}
+samps <- read.delim(paste0(QC_folder, "/removed.samples.txt"))
+samps
+```
+
+Only one sample was excluded at this point, due to a deviation in the ratio between median methylated signal and median unmethylated signals. When repeating the QC without this sample, no other samples were removed.
+
+# Probes quality control
+
+The second step was filtering out probes with bad quality. To this end, we run QC with meffil which checks the following features:
+
+- Number of beads per probe
+- Probe call rate
+
+```{r}
+probes <- read.delim(paste0(QC_folder, "/removed.probes.txt"), sep = "\t")
+```
+
+`r nrow(probes)` probes were discarded in this point: `r sum(probes$issue == "Low bead number")` probes due to a low bead number, `r sum(probes$issue == "Detection p-value")` due to low call rate and `r sum(probes$issue == "Detection p-value, Low bead number")` probes failed both criteria.
+
+
+# Data normalization
+
+Once we excluded samples and probes with bad quality, we performed normalization with meffil. Meffil runs functional normalization. In functional normalization, control probes are used to correct for technical effects, by removing the main principal components from the signal of control probes from the signal of the remaining probes. However, the number of principal components included should be specificed by the user. In our case, we chose to include 5 principal components, based on their proportion of variance explained.
+
+# Data exploration
+
+## Correlation between technical duplicates
+
+In our dataset, we had a sample with a technical duplicate (G2CS12CO). We evaluated whether the methylation values of these two samples were more similar than the rest of methylation values. To do so, we used a centered correlation.
+
+```{r}
+load(paste0(QC_folder, "/norm.beta.Rdata"))
+cpgMeans <- rowMeans(norm.beta)
+correlsglobal <- cor(norm.beta - cpgMeans)
+
+hist(correlsglobal[upper.tri(correlsglobal)], main = "Mean-centered correlation", xlab = "Pearson r")
+abline(v = correlsglobal["G2CS12COBIS", "G2CS12CO"])
+```
+
+The distribution of the centered correlations in our population is centered at 0. The correlation for the technical duplicates (vertical line) is much higher than the overall population. 
+
+## Factors dominating global methylation
+
+We explored which factors are correlated with global methylation patterns. To this end, we correlated different variables with the 5 first principal components of methylation. The variables we tested were:
+
+- Technical. These variables are related with the DNA methylation experiment: Slide, Array position.
+- Phenotypic. These variables are related with the samples: Sex and gestational age.
+- Design. These variables are related with our experimental design: Status, CHD group, known genetic cause and sample Batch.
+
+None of the first 5 Principal components was associated with any of the technical variables, suggesting that normalization has removed technical noise. Of the phenotypic variables, gestational age was correlated with components 1 to 4, while sex was not correlated. Design variables had a strong influence in overall methylation patterns. The strongest variable was sample batch, which was correlated with components 1, 2 and 5. Then, we had case/control status (components 3 and 4) and CHD group (component 4). Finally, we observed that having a genetic cause was correlated with component 1. Full results of this exploration are available in meffil_v2_2020-03-16_normalization.html. 
+
+All in all, these results recommend to run a sensitivity analysis only including samples from batch VHIR1, in order to remove possible confounding due to this variable. 
+
+# Final sets creation
+
+Normalized data consisted on the methylation values represented with beta values. In order to ease analyses, we encapsulated the data in `GenomicRatioSet`s, a class from `minfi` package. `GenomicRatioSet`s contains the methylation values along with the CpGs annotation and information about the samples. In addition, we removed different sets of probes that can be problematic in the analysis.
+
+## Initial data
+
+```{r}
+load(paste0(final_folder, "/gset.allProbes.Rdata"))
+pr <- nrow(gset)
+```
+
+Initial GenomicRatioSet, stored in gset.allProbes.Rdata, includes all the probes and samples that passed quality control. Thus, this object contains `r ncol(gset) ` samples and `r pr` probes.
+
+## All Methylation sites
+
+```{r}
+load(paste0(final_folder, "/gset.allCpGs.Rdata"))
+p1 <- nrow(gset)
+```
+
+First, we removed all probes not measuring CpG methylation (i.e probes measuring SNPs or CH methylation). We filtered out `r pr-p1` probes, so the `GenomicRatioSet` contained `r p1` probes.
+
+## Probes with unique mapping and without SNPs
+
+```{r}
+load(paste0(final_folder, "/gset.filterAnnotatedProbes.Rdata"))
+p2 <- nrow(gset)
+```
+
+Second, we removed all probes with non-unique mapping to the genome or containing a SNP in the probe sequence. We filtered out `r p1-p2` probes, so the `GenomicRatioSet` contained `r p2` probes.
+
+## Probes in autosomic chromosomes
+
+```{r}
+load(paste0(final_folder, "/gset.autosomic.Rdata"))
+p3 <- nrow(gset)
+```
+
+Third, we removed all probes in sexual chromosomes. We filtered out `r p2-p3` probes, so the `GenomicRatioSet` contained `r p3` probes.

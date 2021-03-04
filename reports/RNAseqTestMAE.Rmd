@@ -1,0 +1,98 @@
+---
+title: "Test Mono Allelic Expression (MAE) in RNAseq"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Summary
+
+We run MAE analyssis in RNAseq samples.
+
+```{r, echo = FALSE}
+library(data.table)
+library(knitr)
+library(GenomicRanges)
+library(openxlsx)
+
+vers.MAE <- "v1"
+load(paste0("../results/RNAseq/ASE/", vers.MAE, "/tMAE_res.Rdata"))
+
+segDupsFile <- "/home/SHARED/DATA/REFERENCES/GRCh37/Repeats/segDups_hg19.txt.gz"
+segDups <- read.table(gzfile(segDupsFile), comment.char = "", header = TRUE)
+```
+
+Remove variants where reference allele is N
+
+```{r}
+resMAE.filt <- resMAE[ refAllele != "N"]
+```
+
+
+
+Remove variants in segmental duplications
+
+```{r}
+segDupGR <- makeGRangesFromDataFrame(segDups, start.field = "chromStart", end.field = "chromEnd")
+rng <- GRanges(seqnames = paste0("chr", resMAE.filt$contig),
+ranges = IRanges(start = resMAE.filt$position, end = resMAE.filt$position),
+strand = '*')
+resMAE.segDup <- resMAE.filt[- c(unique(from(findOverlaps(rng, segDupGR)))),]
+```
+
+
+Select variants with different MAE than the gene (focus on coding positions). Discard genes with discrepancies in controls and focus in genes with discrepancies in 1 or 2 samples.
+
+```{r}
+resMAE.segDup[, relevant := (MAE == "monoallelic" & gene_MAE == "biallelic") | 
+         (MAE == "biallelic" & gene_MAE == "monoallelic")]
+relGenes <- unique(resMAE.segDup[relevant == TRUE & LOCATION == "coding", .(MAE_ID, GENEID)] )
+
+relGenes.contr <- relGenes[MAE_ID %in% c("G3-CS8-CO", "G3-CS1-CO"), ]$GENEID
+relGenes.case <- relGenes[!GENEID %in% relGenes.contr, ]
+
+relGenes.freq <- table(relGenes.case$GENEID)
+relGenes.singl <- relGenes[GENEID %in% names(which(relGenes.freq <= 2)), ]
+relGenes.singl[, .N, by = "MAE_ID"]
+```
+```{r, include = FALSE}
+relGenes.singl$N_coding <- sapply(seq_len(nrow(relGenes.singl)), function(i){
+  tab <- subset(resMAE.segDup, MAE_ID == data.frame(relGenes.singl)[i, "MAE_ID"] & 
+                  GENEID == data.frame(relGenes.singl)[i, "GENEID"])
+  sum(tab$LOCATION == "coding" )
+})
+relGenes.singl$N_coding_relevant <- sapply(seq_len(nrow(relGenes.singl)), function(i){
+  tab <- subset(resMAE.segDup, MAE_ID == data.frame(relGenes.singl)[i, "MAE_ID"] & 
+                  GENEID == data.frame(relGenes.singl)[i, "GENEID"])
+  sum(tab$LOCATION == "coding" & tab$relevant)
+})
+
+relGenes.singl$N_total <- sapply(seq_len(nrow(relGenes.singl)), function(i){
+  tab <- subset(resMAE.segDup, MAE_ID == data.frame(relGenes.singl)[i, "MAE_ID"] & 
+                  GENEID == data.frame(relGenes.singl)[i, "GENEID"])
+  nrow(tab)
+})
+relGenes.singl$N_total_relevant <- sapply(seq_len(nrow(relGenes.singl)), function(i){
+  tab <- subset(resMAE.segDup, MAE_ID == data.frame(relGenes.singl)[i, "MAE_ID"] & 
+                  GENEID == data.frame(relGenes.singl)[i, "GENEID"])
+  sum(tab$relevant)
+})
+
+
+  write.xlsx(relGenes.singl, file = paste0("../results/RNAseq/ASE/", vers.MAE, "/MAE_summary_general.xlsx"))
+lapply(unique(relGenes.singl$MAE_ID), function(sample){
+  sampGenes <- subset(relGenes.singl, MAE_ID == sample)
+  genesTabs <- lapply(sampGenes$GENEID, function(gene){
+    subset(resMAE.segDup, GENEID == gene)
+  })
+  names(genesTabs) <- sampGenes$GENEID
+  write.xlsx(genesTabs, file = paste0("../results/RNAseq/ASE/", vers.MAE, "/MAE_summary_", sample, ".xlsx"))
+})
+```
+

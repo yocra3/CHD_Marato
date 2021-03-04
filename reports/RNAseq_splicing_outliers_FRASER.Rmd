@@ -1,0 +1,312 @@
+---
+title: "RNAseq splicing outliers FRASER"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r, echo = FALSE}
+library(FRASER)
+library(cowplot)
+library(ggplot2)
+library(dplyr)
+library(VariantAnnotation)
+
+splicing_vers <- "v1/"
+cnv_vers <- "v1/"
+
+cnv_folder <- paste0("../results/CNVs/", cnv_vers)
+splicing_folder <- paste0("../results/RNAseq/FRASER_splicing_aberrations/", splicing_vers)
+snv_folder <- paste0("../data/WGS/VCFs/")
+
+load(paste0(splicing_folder, "FRASER_results.Rdata"))
+workingDir(fdsres) <- splicing_folder
+```
+
+This report contains an exploration of the outlier results obtained with FRASER.
+
+# General analysis
+
+We removed those aberrations detected in mitochondrial chromosome and collapsed ranges from different measures. 
+
+```{r}
+res <- results(fdsres)
+res <- res[seqnames(res) != "MT"]
+mergeRanges <- function(id){
+  range <- reduce(subset(res, sampleID == id)) 
+  df <- data.frame(range = as.character(range), 
+                   id = id)
+  df
+}
+map <- Reduce(rbind, lapply(unique(res$sampleID), mergeRanges ))
+map
+table(map$id)
+```
+
+22 aberrant splicing events were identified using FRASER. Interestingly, all events but one were detected in patient samples. We will describe these events for each sample. In the following plots, sample with an aberration is plotted separateley and reamining case and control samples are plotted together. 
+
+## 16B12251
+
+```{r}
+sampGR <- GRanges(subset(map, id == "16B12251")$range)
+seqlevelsStyle(sampGR) <- "UCSC"
+vars <- readVcf(paste0(snv_folder, "62460596_S5.vcf.gz"),
+                genome = "hg19", ScanVcfParam(which = sampGR + 1e3))
+```
+
+
+Sample 16B12251 presented one aberration, consisting on skipping of exon 7 of MRSP15 gene (chr1, 37Mb). 
+
+![16B12251](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/16B12251.1.png)
+
+Looking at the exon and junction coverage, the exon skipping is heterozygous. Using the WGS data, we found a mutation in 5'ss +3 (T>G) of exon 7:
+
+![16B12251_mut](IGV_figures_splicingVariants/16B12251.png)
+
+This variant has not been previously described. Nonetheless, a mutation T>A has been reported with very low frequency.
+
+
+## G4CS1CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G4CS1CO")$range)
+seqlevelsStyle(sampGR) <- "UCSC"
+vars <- readVcf(paste0(snv_folder, "62422149_S4.vcf.gz"),
+                genome = "hg19", ScanVcfParam(which = sampGR + 1e3))
+```
+
+
+Sample G4CS1CO presented one aberration, consisting on retention of intron 1 and use splicing site of another NME2 transcript (chr17, 49Mb). 
+
+![G4CS1CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G4CS1CO.1.png)
+
+The data suggest that the intron retention is homozygous. Using the WGS data, we found a mutation in 5'ss +1 (G>A) of exon 1:
+
+![16B12251_mut](IGV_figures_splicingVariants/G4CS1CO.png)
+
+Interestingly, one control was heterozygous for the variant and showed an intermediate level of expression of intron 1. However, this variant has already described in the literature (F = 0.037 and 16 homozygous in gnomAD)
+
+## G2CS4CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G2CS4CO")$range)
+seqlevelsStyle(sampGR) <- "UCSC"
+vars <- readVcf(paste0(snv_folder, "62422129_S1.vcf.gz"),
+                genome = "hg19", ScanVcfParam(which = sampGR + 1e3))
+```
+
+Sample G2CS4CO presented two aberrations.
+
+The first aberration was an alternative splicing site in exon 3 of C19orf25 (chr19, 1Mb). 
+
+![G2CS4CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS4CO.1.png)
+
+The data suggest that the alternative splicing site is heterozygous Using the WGS data, we found an heterozygous variant in 3'ss -1 (C>G) of exon 3:
+
+![G2CS4CO_mut1](IGV_figures_splicingVariants/G2CS4CO_1.png)
+
+This variant has already been described in the literature (F = 0.002784 and high confidence of pLoF in gnomAD)
+
+
+The second aberration was skipping of exons 5 and 6 of TMLHE (chrX, 154Mb). 
+
+![G2CS4CO.2](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS4CO.2.png)
+
+The data suggest that the exon loss is hemizyguous (Variant is in chromosome X and the smaple is male). We examined the WGS and we found an hemizygous deletion in the region.
+
+![G2CS4CO_mut2](IGV_figures_splicingVariants/G2CS4CO_2.png)
+
+
+## G2CS6CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G2CS6CO")$range)
+seqlevelsStyle(sampGR) <- "UCSC"
+vars <- readVcf(paste0(snv_folder, "62422129_S1.vcf.gz"),
+                genome = "hg19", ScanVcfParam(which = sampGR + 1e3))
+```
+
+Sample G2CS6CO presented two aberrations.
+
+The first aberration was skipping of exons 2 to 6 of MNAT1 (chr14, 61Mb). 
+
+![G2CS6CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS6CO.1.png)
+
+Exon skipping is heterozygous. There are many heterozyguous variants in the region, but they are in intronic positions and they have not been described as modifiers of splicing.
+
+The second aberration was skipping of exon 3 of ZFAS1 (chr20, 47Mb).
+![G2CS6CO.2](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS6CO.2.png)
+
+We observed a great reduction in expression of exon 3, although it is not complete. No homozygous variants are close to splicing sites, but a heterozygous variant is located close to 5'ss of exon 3. This variant (n.730+5G>A) has not been described in the literature. 
+
+## G2CS13CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G2CS13CO")$range)
+seqlevelsStyle(sampGR) <- "UCSC"
+vars <- readVcf(paste0(snv_folder, "62422160_S2.vcf.gz"),
+                genome = "hg19", ScanVcfParam(which = sampGR + 1e3))
+```
+
+
+Sample G2CS13CO presented three aberrations.
+
+The first aberration was retention of intron 1 of DGCR6 (chr22, 18Mb). 
+
+![G2CS13CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS13CO.1.png)
+
+This retention is present in a high proportion of reads. We found an homozygous deletion in 5'ss (c.110+13_110+21delGGCGGGCGG), which can explain the splicing aberration. However, this variant has been described in gnomAD with a high frequency.
+
+
+![G2CS13CO](IGV_figures_splicingVariants/G2CS13CO.png)
+
+
+The second aberration was partial retention of intron 23 of FLNC (chr7, 128Mb). 
+
+![G2CS13CO.2](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS13CO.2.png)
+
+However, gene expression is very low and we did not find any genetic variant in the region which can explain this aberration. Thus, this can be a potential artifact.
+
+
+The third aberration was partial retention of intron 4 of AGPAT2 (chr9, 139Mb). 
+
+![G2CS13CO.3](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS13CO.3.png)
+
+Coverage in the retained intron is much lower than in the exon. There are no variants close to splicing sites and there are no reads supporting an alternative splicing site with the retained intro. This aberration is likely an artifact.
+
+## G3CS9CO
+
+Control sample G3CS9CO presented a retention of intron 4 of NME3 (chr16, 1Mb). 
+
+![G3CS9CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G3CS9CO.1.png)
+
+![G3CS9CO.2](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G3CS9CO.2.png)
+
+## G4CS13CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G4CS13CO")$range)
+seqlevelsStyle(sampGR) <- "UCSC"
+vars <- readVcf(paste0(snv_folder, "62422142_S3.vcf.gz"),
+                genome = "hg19", ScanVcfParam(which = sampGR + 1e3))
+```
+
+Sample G4CS13CO presented an alternative splicing site for exon 14 (or 6 depending on transcript) of RPS6KB2 (chr11, 67Mb). 
+
+![G4CS13CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G4CS13CO.1.png)
+
+Half of the transcripts use the alternative splicing site. We found a variant close to 3'ss of exon 14:
+
+![G4CS13CO](IGV_figures_splicingVariants/G4CS13CO.png)
+
+This variant has been described in gnomAD but only one allele was found
+
+## G2CS9CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G2CS9CO")$range)
+```
+
+
+Sample G2CS9CO presented higher coverage in a region were no genes are annotated in genome browser. This might indicate the presence of a different non-coding RNA.  
+
+![G2CS9CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS9CO.1.png)
+
+There are no any feature annotated in this region. In a previous experiment, it has been reported an increased coverage for this region. Thus, it is difficult to map this increase to any effect.
+
+## G5CS6CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G5CS6CO")$range)
+```
+Sample G5CS6CO presented the skipping of exon 2 of SNHG32 (chr6, 31Mb)
+
+![G5CS6CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G5CS6CO.1.png)
+
+Exon skipping appears to be heterozyguous. There is an heterozyguous variant in 5'ss of exon 2: 
+
+![G5CS6CO](IGV_figures_splicingVariants/G5CS6CO.png)
+
+This variant has not been described in the literature and it is not present in gnomAD.
+
+
+## G2CS8CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G2CS8CO")$range)
+```
+
+Sample G2CS8CO presented six aberrations.
+
+The first aberration was retention of intron 7 (or 99, depending on the transcript) of RYR2 (chr1, 237Mb). 
+
+![G2CS8CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS8CO.1.png)
+
+This aberration is likely to be an artifact. Intron retention stops abruptly, there is no an alternative splicing site and there are no reads going from retained intron to another exon.
+
+The second aberration was retention of intron 4 (or 11 or 12, depending on the transcript) of DENND5A (chr11, 9Mb). 
+
+![G2CS8CO.2](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS8CO.2.png)
+
+As in the previous case, this aberration is likely to be an artifact. Intron retention stops abruptly, there is no an alternative splicing site and there are no reads going from retained intron to another exon.
+
+The third aberration was an alternative splicing site of exon 11 (or 18, 19, 21, depending on the transcript) of USP28 (chr11, 113Mb). 
+
+![G2CS8CO.3](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS8CO.3.png)
+
+This aberration is also likely to be an artifact. There are no variants in the region supporting an alternative splicing site and the coverage in the region is low. 
+
+The fourth aberration was an alternative splicing site of exon 3 (or 2, depending on the transcript) of RNF10 (chr12, 120Mb). 
+
+![G2CS8CO.4](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS8CO.4.png)
+
+This aberration is also likely to be an artifact. There are no variants in the region supporting an alternative splicing site and the coverage in the region is low. 
+
+The fifth aberration was retention of intron 21 (or 18, 20 , depending on the transcript) of MARCH6 (chr5, 10Mb). 
+
+![G2CS8CO.5](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS8CO.5.png)
+
+This aberration is also likely to be an artifact. There are no variants in the region supporting an alternative splicing site and the coverage in the region is low. 
+
+
+The sixth aberration was alternative splicing site of exon 1 of DNAJA1 (chr9, 33Mb). 
+
+![G2CS8CO.6](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G2CS8CO.6.png)
+
+This aberration is also likely to be an artifact. There are no variants in the region supporting an alternative splicing site and the coverage in the region is low. 
+
+## G4CS3CO
+
+```{r}
+sampGR <- GRanges(subset(map, id == "G4CS3CO")$range)
+seqlevelsStyle(sampGR) <- "UCSC"
+vars <- readVcf(paste0(snv_folder, "62422150_S5.vcf.gz"),
+                genome = "hg19", ScanVcfParam(which = sampGR + 1e3))
+```
+
+Sample G4CS3CO presented two aberrations.
+
+The first aberration was increased covarege in last exon (exon 10) of MIIP (chr1, 12Mb).
+
+![G4CS3CO](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G4CS3CO.1.png)
+
+In this case, G4CS3CO presents whole exon 10, matching canonical trasncript in gnomAD and in RefSeq, while in control samples this exon is skipped and only 13 nt are included.
+
+![G4CS3CO](IGV_figures_splicingVariants/G4CS3CO_1.png)
+
+No variants close to this exon have been found that could explain this different splicing pattern. 
+
+The second aberration was alternative splicing site in exon 4 of REXO2 (chr11, 114Mb).
+
+![G4CS3CO.2](../results/RNAseq/FRASER_splicing_aberrations_plots/v1/G4CS3CO.2.png)
+
+This aberration is also likely to be an artifact. There are no variants in the region supporting an alternative splicing site and the coverage in the region is low. 

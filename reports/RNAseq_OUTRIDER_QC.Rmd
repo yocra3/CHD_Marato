@@ -1,0 +1,53 @@
+---
+title: "RNAseq OUTRIDER QC"
+author: "Carlos Ruiz"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r, echo = FALSE}
+library(OUTRIDER)
+library(ggplot2)
+library(dplyr)
+
+RNA_vers <- "v2/"
+outrider_folder <- paste0("../results/RNAseq/OUTRIDER_aberrations/", RNA_vers)
+load(paste0(outrider_folder, "OUTRIDER_QC.Rdata"))
+
+RNA_folder <- paste0("../results/RNAseq/Bioc_objects/", RNA_vers)
+load(paste0(RNA_folder, "RNAseq_RangedSE_autosomicGenes.Rdata"))
+```
+
+This report contains the quality control of OUTRIDER results.
+
+# Gene filtering
+
+Genes were filtered out based on OUTRIDER parameters. A total of `r nrow (rse) - nrow(ods.filt)` genes were removed so a total of `r nrow(ods.filt)` genes were included in the analysis.
+
+```{r}
+plotExpressedGenes(ods.filt)
+```
+
+# Control for Confounders
+
+```{r}
+plotCountCorHeatmap(ods.filt, colGroups = c("Status"),
+                    normalized = FALSE)
+```
+
+Before normalization, samples are clustered by status.
+
+```{r}
+plotCountCorHeatmap(ods.cor, colGroups = c("Status"), normalized = TRUE)
+```
+
+Some correlations still persist but the samples are not clustered by status.

@@ -1,0 +1,21 @@
+## Exclude R project files
+.Rproj.user
+.Rhistory
+.RData
+*.Rproj
+*.html
+*.md
+*.png
+*.txt
+
+## Exclude nextflow files
+.nextflow*
+work/
+
+## Exclude folders with data
+data/
+docs/
+results/
+
+## Exclude Python pyc
+*.pyc
