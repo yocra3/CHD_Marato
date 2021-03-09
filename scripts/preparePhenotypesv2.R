@@ -88,10 +88,11 @@ batch2$SampleID <- gsub("-| ", "", batch2$Etiqueta)
 pheno$SampleBatch <- ifelse(pheno$SampleID %in% batch1$SampleID, "VHIR1",
                             ifelse(pheno$SampleID %in% batch2$SampleID, "VHIR2",
                                    ifelse(!grepl("CO$", pheno$SampleID), "Mallorca", "Lab")))
+pheno$ExtractionBatch <- ifelse(pheno$SampleBatch %in% c("VHIR1", "Lab"), "Day1", "Day2")
 
 ## Create final object with created variables
-finalVars <- c("SampleID", "Sex", "GestAge", "Status", "pathGroup", "pathClass", "MolecularCause", 
-               "Rearrangements", "Del22q11", "SampleBatch", "N_genes")
+finalVars <- c("SampleID", "Sex", "GestAge", "Status", "pathGroup", "pathClass", "ExtractionBatch",
+               "MolecularCause", "Rearrangements", "Del22q11", "SampleBatch", "N_genes")
 pheno <- pheno[, finalVars]
 
 save(pheno, file = "pheno.Rdata")
@@ -103,6 +104,7 @@ codebook <- data.frame(Variable = finalVars,
                                    "Gestional age in weeks", "Case (fetus with CHD) or Control",
                                    "Initial CHD classification",
                        			   "CHD classification from pathologists",
+                       			   "Batch of DNA extraction",
                        			   "If YES, the sample has a potential molecular cause",
                                    "If YES, the sample has a big CNV (>1Mb) or a rearrangement",
                                    "If YES, the sample has del22q11.1",

@@ -1,0 +1,36 @@
+---
+title: "Methylation patterns chrX skewing"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+In the mono-allelic expression analysis, we observed two individuals (G2CS2CO and G2CS13CO) with imbalanced chrX inactivation. In this document, we aim to investigate whether this bias is also observed on the methylation patterns of chromosome X.
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(minfi)
+library(ggplot2)
+
+load("../results/methylation/finalQC_files/v5/gset.filterAnnotatedProbes.Rdata")
+
+gsetX <- gset[seqnames(rowRanges(gset)) == "chrX", ]
+```
+
+# Al
+
+```{r}
+pcX_all <- prcomp(t(getBeta(gsetX)))
+plot(pcX_all$x, col = colnames(gsetX) %in% c("G2CS2CO", "G2CS13CO") + 1, pch = 16)
+
+gsetX_fem <- gsetX[, gsetX$Sex == "F"]
+pcX_fem <- prcomp(t(getBeta(gsetX_fem)))
+plot(pcX_fem$x, col = colnames(gsetX_fem) %in% c("G2CS2CO", "G2CS13CO") + 1, pch = 16)
+
+```
+

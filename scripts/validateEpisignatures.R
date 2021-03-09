@@ -14,7 +14,7 @@ library(dplyr)
 library(sva)
 
 ## Load files
-load("results/methylation/finalQC_files/v4/gset.autosomic.Rdata")
+load("results/methylation/finalQC_files/v5/gset.autosomic.Rdata")
 load("results/methylation/Episignatures/cohort.training.Rdata")
 load("data/GEO/GSE62629/GenomicRatioSet.Rdata")
 
@@ -25,13 +25,13 @@ over <- findOverlaps(rowRanges(gset), rowRanges(gset.GSE62629))
 gset.GSE62629.filt <- gset.GSE62629[to(over), ]
 rownames(gset.GSE62629.filt) <- rownames(gset)[from(over)]
 save(gset.GSE62629.filt, file = "results/methylation/Episignatures/GSE62629.GenomicRatioSet.EPICcpgs.Rdata")
-pred.GSE62629 <-  predict(svm_all$svm, t(getBeta(gset.GSE62629.filt[svm_all$feats, ])))
+pred.GSE62629 <-  predict(svm_comb$svm, t(getBeta(gset.GSE62629.filt[svm_comb$feats, ])))
 
 
-mat <- cbind(getBeta(gset.GSE62629.filt[svm_all$feats, ]),
-			 getBeta(gset[svm_all$feats, ]))
+mat <- cbind(getBeta(gset.GSE62629.filt[svm_comb$feats, ]),
+			 getBeta(gset[svm_comb$feats, ]))
 
 pc_comb <- prcomp(t(mat))
 pc_GSE <- prcomp(t(getBeta(gset.GSE62629.filt)))
-pc_GSE_svm <- prcomp(t(getBeta(gset.GSE62629.filt[svm_all$feats, ])))
+pc_GSE_svm <- prcomp(t(getBeta(gset.GSE62629.filt[svm_comb$feats, ])))
 save(pred.GSE62629, pc_comb, pc_GSE, pc_GSE_svm, file = "results/methylation/Episignatures/GSE62629.results.Rdata")

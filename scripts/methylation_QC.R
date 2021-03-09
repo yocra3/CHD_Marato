@@ -44,7 +44,7 @@ qc.parameters <- meffil.qc.parameters(
 pcs <- 5 
 
 ## Batch variables
-batch_var <- c("Slide", "Array", "Sex", "GestAge", "Status", "pathGroup", "pathClass", "MolecularCause", "SampleBatch", "Rearrangements", "Del22q11", "N_genes")
+batch_var <- c("Slide", "Array", "Sex", "GestAge", "Status", "ExtractionBatch", "pathGroup", "pathClass", "MolecularCause", "SampleBatch", "Rearrangements", "Del22q11", "N_genes")
 
 #'#################################################################################
 #'#################################################################################
@@ -56,6 +56,10 @@ samplesheet <- meffil.read.samplesheet(base = inFold, pattern = csvPattern)
 ### Load and adapt samples data
 load(phenoPath)
 
+## Add info for technical duplicate
+pheno <- rbind(pheno, pheno[pheno$SampleID == "G2CS12CO", ] )
+pheno[nrow(pheno), "SampleID"] <- "G2CS12COBIS"
+               
 ## Merge both
 samplesheet <- mutate(samplesheet, SampleID = Sample_Name)
 combSheet <- left_join(select(samplesheet, -Sex), pheno, by = "SampleID")

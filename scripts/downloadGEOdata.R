@@ -25,4 +25,7 @@ annotGR <- makeGRangesFromDataFrame(annot, seqnames.field = "V1",
 									end.field = "start")
 
 gset.GSE62629 <- GenomicRatioSet(gr = annotGR, Beta = methmat, colData = pData(pheno[[1]]))
+gset.GSE62629$Group <- ifelse(gset.GSE62629$"disease state:ch1" == "normal", 
+                              paste(gset.GSE62629$source_name_ch1, gset.GSE62629$"disease state:ch1"), 
+                              gset.GSE62629$"disease state:ch1")
 save(gset.GSE62629, file = "data/GEO/GSE62629/GenomicRatioSet.Rdata")

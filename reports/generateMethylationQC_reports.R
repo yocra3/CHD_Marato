@@ -10,7 +10,7 @@ library(meffil)
 library(minfi)
 
 ## Define names
-vers <- "v4"
+vers <- "v5"
 QC_folder <- paste0("results/methylation/QC_intermediate/", vers)
 reportsName <- paste("reports/meffil", vers, Sys.Date(), sep = "_")
 
@@ -29,7 +29,7 @@ load(paste0(QC_folder, "/norm.obj.pc.Rdata"))
 
 beta.pcs <- meffil.methylation.pcs(getBeta(gset), probe.range = 40000)
 
-batch_var <- c("Slide", "Array", "Sex", "GestAge", "Status", "pathGroup", "pathClass", "MolecularCause", "SampleBatch", "Rearrangements", "Del22q11", "N_genes")
+batch_var <- c("Slide", "Array", "Sex", "GestAge", "Status", "ExtractionBatch", "pathGroup", "pathClass", "MolecularCause", "SampleBatch", "Rearrangements", "Del22q11", "N_genes")
 
 ## Define normalization parameters
 norm.parameters <- meffil.normalization.parameters(

@@ -20,7 +20,7 @@ library(dplyr)
 library(limma)
 
 ## Load files
-load("results/methylation/finalQC_files/v4/gset.autosomic.Rdata")
+load("results/methylation/finalQC_files/v5/gset.autosomic.Rdata")
 resFold <- "results/methylation/Episignatures/"
 groups <- 4
 
@@ -54,13 +54,16 @@ getFeatures <- function(gset, group){
 	rownames(tab.fil)
 }
 
-trainSVM <- function(gset){
+trainSVM <- function(gset, feats = NULL){
 	
 	## Get features distinguishing the groups
 	groups <- unique(gset$pathClass)
-	featslist <- lapply(groups, getFeatures, gset = gset)
-	feats <- unique(unlist(featslist))
 	
+	if (is.null(feats)){
+	  featslist <- lapply(groups, getFeatures, gset = gset)
+	  feats <- unique(unlist(featslist))
+	  
+	}
 	mat <- getBeta(gset[feats, ])
 	df <- data.frame(pathClass = factor(gset$pathClass), t(mat))
 	model_svm <- svm(pathClass ~ ., df)
@@ -92,7 +95,7 @@ episig_subset_mergeClass <- lapply(seq_len(groups), function(i){
 	
 	gsetmod <- gset
 	gsetmod$pathClass <- ifelse(gsetmod$pathClass %in% c("Conotruncal Malformations", "Left heart hypoplasia"),
-								"Common malformations", gsetmod$pathClass)
+								"Conotruncal Malformations or Left heart hypoplasia", gsetmod$pathClass)
 	
 	train <- selectDataset(gsetmod, sampTab, i)
 	test <- gsetmod[, !colnames(gsetmod) %in% colnames(train)]
@@ -111,12 +114,20 @@ episig_subset_mergeClass <- lapply(seq_len(groups), function(i){
 
 ## SVM with all samples ####
 ### 3 CHD groups
-svm_all <- trainSVM(gset)
+### Use probes selected in at least 3 instances
+feats_all_tab <- table(unlist(lapply(episig_subset, `[[`, "feats")))
+feats_all <- names(feats_all_tab)[feats_all_tab >= 3]
+svm_all <- trainSVM(gset, feats_all)
+
 pred_all <- predict(svm_all$svm, t(getBeta(gset[svm_all$feats, ])))
 
+### 2 CHD groups
+### Use probes selected in at least 3 instances
 gsetmod <- gset
 gsetmod$pathClass <- ifelse(gsetmod$pathClass %in% c("Conotruncal Malformations", "Left heart hypoplasia"),
-							"Common malformations", gsetmod$pathClass)
-svm_comb <- trainSVM(gsetmod)
+							"Conotruncal Malformations or Left heart hypoplasia", gsetmod$pathClass)
+feats_comb_tab <- table(unlist(lapply(episig_subset_mergeClass, `[[`, "feats")))
+feats_comb <- names(feats_comb_tab)[feats_comb_tab >= 3]
+svm_comb <- trainSVM(gsetmod, feats_comb)
 save(svm_all, svm_comb, episig_subset_mergeClass, episig_subset, 
 	 file = paste0(resFold, "cohort.training.Rdata"))

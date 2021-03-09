@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 # Introduction
@@ -35,7 +35,7 @@ library(dendextend)
 
 
 load("../results/methylation/Episignatures/cohort.training.Rdata")
-load("../results/methylation/finalQC_files/v4/gset.autosomic.Rdata")
+load("../results/methylation/finalQC_files/v5/gset.autosomic.Rdata")
 load("../results/methylation/Episignatures/GSE62629.results.Rdata")
 load("../results/methylation/Episignatures/GSE62629.GenomicRatioSet.EPICcpgs.Rdata")
 
@@ -67,10 +67,10 @@ table(pred.df_mrege$predClass, pred.df_mrege$trueClass)
 
 After merging both categories, 41/44 (93%) of samples were correctly classified, with the exception of 2 controls and 1 individuals with other malformations that were incorrectly labeled as Conotruncal Malformations/Left heart hypoplasia.
 
-We repeated the whole process but using the whole cohort as training. 
+Finally, we train another SVM using all the samples. To reduce overfitting, we selected the features included in at least 3 subsets, with CHD defined in two groups.
 
 ```{r}
-mat <- getBeta(gset[svm_all$feats, ])
+mat <- getBeta(gset[svm_comb$feats, ])
 
 cols <- c("#000000", "#CC6666", "#9999CC", "#66CC99")
 names(cols) <- c("Control", "Conotruncal Malformations", 
@@ -87,7 +87,16 @@ The features included in the classifier, clearly separated controls (black) from
 
 # Validation in MBD-seq dataset
 
-We tried to validate our SVM classifier in a GEO dataset. To this end, we selected the positions in the MBD-seq matching the CpGs in the EPIC array and run the SVM classifier:
+We tried to validate our SVM classifier in a GEO dataset. This dataset presented the following distribution of samples:
+
+```{r}
+table(gset.GSE62629.filt$Group)
+```
+
+Control samples came from right atrium or right ventricle, while TOF came from right ventricle and VSD from right auricle. Notice that control samples were adults, while the other were children. 
+
+
+To this end, we selected the positions in the MBD-seq matching the CpGs in the EPIC array and run the SVM classifier:
 
 ```{r}
 table(pred.GSE62629)
@@ -112,34 +121,38 @@ Despite this, we aimed to test whether the features selected with our approach c
 
 
 ```{r}
-mat.GSE <- data.matrix(getBeta(gset.GSE62629.filt[svm_all$feats, ]))
-
-cols2 <- c("#000000", "blue", "green")
-names(cols2) <- c("normal", "Tetralogy of Fallot", 
+mat.GSE <- data.matrix(getBeta(gset.GSE62629.filt[svm_comb$feats, ]))
+cols2 <- c("#000000", "#999999", "blue", "green")
+names(cols2) <- c("right atrium normal", "right ventricle normal", "Tetralogy of Fallot", 
 				 "ventricular septal defect")
 
-colPlot2 <- cols2[gset.GSE62629.filt$"disease state:ch1"]
+colPlot2 <- cols2[gset.GSE62629.filt$Group]
 
 heatmap(mat.GSE, Rowv = NA, scale = "none", 
 		col = gray.colors(100, start = 0, end = 1),
 		ColSideColors = colPlot2)
 ```
 
-We see some clustering by pathologic class, with control samples (black) on one branch, Tetratology of Fallot (blue) in the middle and ventricular septal defect (green) in the middle.
+We see some clustering by pathologic class, with control samples (atrium - black, ventricle - grey) on one branch, Tetratology of Fallot (blue) in the middle and ventricular septal defect (green) in the middle.
 
 Finally, we run a PCA to the CpGs in MBD-Seq dataset common in EPIC and to the features selected in the SVM classifier and compared the clustering.
 
 ```{r cars}
 hcGSE <- as.dendrogram(hclust(dist(pc_GSE$x)))
-hcGSE_svm <- as.dendrogram(hclust(dist(pc_GSE_svm$x)))
 
 ord1 <- order.dendrogram(hcGSE)
-labels_colors(hcGSE) <- cols2[gset.GSE62629.filt[, ord1]$"disease state:ch1"]
+labels_colors(hcGSE) <- cols2[gset.GSE62629.filt[, ord1]$Group]
 plot(hcGSE, main = "All features")
 
+plot(pc_GSE$x, col = colPlot2, pch = 16)
+
+hcGSE_svm <- as.dendrogram(hclust(dist(pc_GSE_svm$x)))
 ord2 <- order.dendrogram(hcGSE_svm)
-labels_colors(hcGSE_svm) <- cols2[gset.GSE62629.filt[, ord2]$"disease state:ch1"] 
+labels_colors(hcGSE_svm) <- cols2[gset.GSE62629.filt[, ord2]$Group] 
 plot(hcGSE_svm, main = "SVM features")
+
+plot(pc_GSE_svm$x, col = colPlot2, pch = 16)
+
 ```
 
 Samples are more clustered by pathologic state when restricting the PCA to the features in the SVM classifier.
@@ -162,8 +175,7 @@ cpgList <- lapply(tabList, function(x) x$TargetID)
 comCpGs <- sapply(cpgList, function(x) intersect(x, svm_all$feats))
 comCpGs
 
-feats.sub <- unlist(lapply(episig_subset, function(x) x$feats))
-comCpGs_sub <- sapply(cpgList, function(x) intersect(x, feats.sub))
+comCpGs_sub <- sapply(cpgList, function(x) intersect(x, svm_comb$feats))
 comCpGs_sub
 ```
 

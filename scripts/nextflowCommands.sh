@@ -10,41 +10,40 @@ nextflow run yocra3/CHD_Marato/workflows/preparePhenotype.nf \
 -with-docker yocra3/rsession_chd_marato:release-1.2.4 --version v2
 
 ## Prepare phenotypes (v3 - after classifying samples with other analysis)
-nextflow run ./workflows/preparePhenotype.nf \
--with-docker yocra3/rsession_chd_marato:release-1.2.4 --version v3
+nextflow run workflows/preparePhenotype.nf \
+-with-docker yocra3/rsession_chd_marato:release-1.2.5 --version v4
 
 
 ## Get SNPs from WGS present in methylation data
-nextflow run ./workflows/prepareSNPsMethylation.nf --inFold results/VariantCalling/SNV/ \
---sampleAnnot data/CHD_marato_sampleSummary.tab -with-docker yocra3/rsession_chd_marato:release-1.2.4 --version v2 \
--resume
+nextflow run  yocra3/CHD_Marato/workflows/prepareSNPsMethylation.nf --inFold data/ExomeVCFs \
+--sampleAnnot data/CHD_marato_sampleSummary.tab -with-docker --version v1
 
 ## QC and normalization of methylation data
-nextflow run ./workflows/methylation_QC_normalization.nf --inFold "./data/methylation/" \
+nextflow workflows/methylation_QC_normalization.nf --inFold "./data/methylation/" \
 --sampleSheet sampleSheet_Roser_EPIC_concatenados.csv \
---phenoPath results/phenotypes/v3/pheno.Rdata --cores 9 \
---genosPath results/methylation/SNPs/v2/genos.raw --methyAnnot data/EPIC.hg19.manifest.rds \
---version v4 -with-docker yocra3/rsession_chd_marato:release-1.2.4
+--phenoPath results/phenotypes/v4/pheno.Rdata --cores 9 \
+--genosPath results/methylation/SNPs/v1/genos.raw --methyAnnot data/EPIC.hg19.manifest.rds \
+--version v5 -with-docker yocra3/rsession_chd_marato:release-1.2.5 -resume
 
 ## Epimutations detection
-nextflow run workflows/detectEpiMutations.nf --sampleAnnot results/phenotypes/v3/pheno.tab \
---gset results/methylation/finalQC_files/v4/gset.autosomic.Rdata --version v5 \
--with-docker yocra3/rsession_chd_marato:release-1.2.4
+nextflow run yocra3/CHD_Marato/workflows/detectEpiMutations.nf --sampleAnnot results/phenotypes/v3/pheno.tab \
+--gset results/methylation/finalQC_files/v5/gset.autosomic.Rdata --version v5 \
+-with-docker yocra3/rsession_chd_marato:release-1.2.5 -resume
 
 ## RNAseq quantification
 nextflow run yocra3/CHD_Marato/workflows/RNAseqQuantification.nf --inFold data/RNAseq_fastq/ \
 -with-docker yocra3/ubuntu_genomicutils:release-0.99.3 --version v2 --cores 15
 
 ## Create RNAseq objects and QC
-nextflow run yocra3/CHD_Marato/workflows/RNAseq_QC.nf --countsPath results/RNAseq/quantification/v2/geneQuantification.txt \
---phenoPath results/phenotypes/v2/pheno.Rdata -with-docker yocra3/rsession_chd_marato:release-1.2.4  \
---version v2
+nextflow run workflows/RNAseq_QC.nf --countsPath results/RNAseq/quantification/v2/geneQuantification.txt \
+--phenoPath results/phenotypes/v3/pheno.Rdata -with-docker yocra3/rsession_chd_marato:release-1.2.5  \
+--version v3
 
 ## Run OUTRIDER
-nextflow run yocra3/CHD_Marato/workflows/RNAseq_aberrations_OUTRIDER.nf \
---rangedSE results/RNAseq/Bioc_objects/v2/RNAseq_RangedSE_autosomicGenes.Rdata \
--with-docker yocra3/rsession_chd_marato:release-1.2.4  \
---version v2
+nextflow run workflows/RNAseq_aberrations_OUTRIDER.nf \
+--rangedSE results/RNAseq/Bioc_objects/v3/RNAseq_RangedSE_autosomicGenes.Rdata \
+-with-docker yocra3/rsession_chd_marato:release-1.2.5  \
+--version v3
 
 ## RNAseq variant calling
 nextflow run yocra3/CHD_Marato/workflows/RNAseq_VariantCalling.nf \

@@ -20,7 +20,7 @@ library(cowplot)
 library(dendextend)
 library(ggplot2)
 
-vers <- "v2/"
+vers <- "v3/"
 QC_folder <- paste0("../results/RNAseq/QC_files/", vers)
 final_folder <- paste0("../results/RNAseq/Bioc_objects/", vers)
 
@@ -35,7 +35,7 @@ This report contains an exploration of the data obtained after aligning the read
 # Genes filtering
 
 ## Initial dataset
-Our initial dataset contained `r ngenes` and `r ncol(rse)`. 
+Our initial dataset contained `r ngenes` genes and `r ncol(rse)` samples.
 
 ```{r, echo = FALSE}
 load(paste0(final_folder, "RNAseq_RangedSE_expressedGenes.Rdata"))
@@ -44,7 +44,7 @@ ngenes2 <- nrow(rse)
 
 ## Low expressed genes removal
 
-We removed genes lowly expressed in our dataset. We kept genes with more than 0.5 cpms in at least 5 samples. Thus, `r ngenes - ngenes2` genes were removed, leading to a dataset with `r ngenes2` genes. 
+We removed genes lowly expressed in our dataset. We kept genes with more than 0.5 cpms in at least 5 samples. Thus, `r ngenes - ngenes2` genes were removed, leading to a dataset with `r ngenes2` genes.
 
 
 
@@ -55,11 +55,11 @@ load(paste0(final_folder, "RNAseq_RangedSE_autosomicGenes.Rdata"))
 ngenes3 <- nrow(rse)
 ```
 
-Finally, we removed genes found in sexual chromosomes. `r ngenes2 - ngenes3` genes were removed, leading to a final dataset with `r ngenes3` genes. 
+Finally, we removed genes found in sexual chromosomes. `r ngenes2 - ngenes3` genes were removed, leading to a final dataset with `r ngenes3` genes.
 
 # Data exploration
 
-We used two different normalization methods to explore our RNAseq data: VST (variance stabilizing transformation) and rlog (regularized-logarithm transformation). For both methods, we run a PCA and a sample clustering. 
+We used two different normalization methods to explore our RNAseq data: VST (variance stabilizing transformation) and rlog (regularized-logarithm transformation). For both methods, we run a PCA and a sample clustering.
 
 In the following sections, we will explore whether different phenotypic variants had an effect on global transcriptomic patterns. In all cases, genes in sexual chromosomes were removed.
 
@@ -77,7 +77,7 @@ computePCAvals <- function(pca, var){
 }
 
 PCAtable <- function(var){
-  
+
   pvalsVSD <- computePCAvals(vsdPCA, var)
   pvalsRLG <- computePCAvals(rlogPCA, var)
 
@@ -113,7 +113,7 @@ labels_colors(hcVSD) <- col[as.numeric(factor(rse$Status))][order.dendrogram(hcV
 plot(hcVSD, main = "VSD")
 ```
 
-4/5 control samples form a clearly identifiable cluster, while the 5th samples is mixed with case samples.
+All control samples form a clearly identifiable cluster.
 
 
 ## Pathological group
@@ -121,31 +121,30 @@ plot(hcVSD, main = "VSD")
 We explored whether pathological group was correlated with the first five principal components.
 
 ```{r}
-vp <- plotPCA(vsd, intgroup = "pathGroup") +
+vp <- plotPCA(vsd, intgroup = "pathClass") +
   theme_bw() +
-  ggtitle("VSD")
+  ggtitle("VSD") +
+  scale_color_manual(values =  c("#CC6666", "#000000", "#9999CC", "#66CC99"))
 
-rp <- plotPCA(rld, intgroup = "pathGroup") +
+
+rp <- plotPCA(rld, intgroup = "pathClass") +
   theme_bw() +
-  ggtitle("rlog")
+  ggtitle("rlog") +
+  scale_color_manual(values =  c("#CC6666", "#000000", "#9999CC", "#66CC99"))
 
 plot_grid(vp, rp, ncol = 1)
-PCAtable(rse$pathGroup)
+PCAtable(rse$pathClass)
 ```
 
 Pathological group was also correlated with the first two PCs. However, the effect might be increased due to the big difference between cases and controls.
 
 ```{r}
-group <- rse$pathGroup
-group[is.na(group)] <- "Mallorca"
-group <- factor(group)
-
-col <- c("red", "orange", "green", "blue", "purple", "black")
-labels_colors(hcVSD) <- col[as.numeric(group)][order.dendrogram(hcVSD)]
+col <- c("#CC6666", "#000000", "#9999CC", "#66CC99")
+labels_colors(hcVSD) <- col[as.numeric(factor(rse$pathClass))][order.dendrogram(hcVSD)]
 plot(hcVSD, main = "VSD")
 ```
 
-Again, we observe the big differences between cases and controls (red). Only pathologic groups G2 (green) and G4 (blue)  have enough samples to be compared. Some G4 samples are clustered in a subgroup, but the pattern is not very strong.
+Again, we observe the big differences between cases and controls (black). Although Conotruncal and left heart hypoplasia are not merged, they are not clearly separated in different clusters.
 
 ## Sex
 
@@ -182,7 +181,7 @@ We evaluated the association between gestational age and the first two principal
 PCAtable(rse$GestAge)
 ```
 
-Gestational age was highly correlated with the first two principal components. 
+Gestational age was highly correlated with the first two principal components.
 
 In order to create PCA plots, we divided gestational age in tertiales.
 
@@ -256,28 +255,28 @@ PCAtable(rse$SampleBatch)
 We do not observe any difference between the samples coming from different labs. Nonetheless, all samples came from VHIR1 but 3 samples, one from each of the remaining batches (VHIR2, Mallorca and lab).
 
 
-## Genetic cause
+## Molecular Cause
 
 We explored whether samples with known genetic cause were clustered in the first five principal components.
 
 ```{r}
-vp <- plotPCA(vsd, intgroup = "GeneticCause") +
+vp <- plotPCA(vsd, intgroup = "MolecularCause") +
   theme_bw() +
   ggtitle("VSD")
 
-rp <- plotPCA(rld, intgroup = "GeneticCause") +
+rp <- plotPCA(rld, intgroup = "MolecularCause") +
   theme_bw() +
   ggtitle("rlog")
 
 plot_grid(vp, rp, ncol = 1)
-PCAtable(rse$GeneticCause)
+PCAtable(rse$MolecularCause)
 ```
 
 Having a known genetic cause is corretaled with the second PC.
 
 ```{r}
 col <- c("grey", "black")
-labels_colors(hcVSD) <- col[as.numeric(factor(rse$GeneticCause))][order.dendrogram(hcVSD)]
+labels_colors(hcVSD) <- col[as.numeric(factor(rse$MolecularCause))][order.dendrogram(hcVSD)]
 plot(hcVSD, main = "VSD")
 ```
 

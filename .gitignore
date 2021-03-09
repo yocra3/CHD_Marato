@@ -7,6 +7,7 @@
 *.md
 *.png
 *.txt
+*.tsv
 
 ## Exclude nextflow files
 .nextflow*
@@ -16,6 +17,7 @@ work/
 data/
 docs/
 results/
+reports/multiQC/
 
 ## Exclude Python pyc
 *.pyc

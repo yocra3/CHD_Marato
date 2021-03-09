@@ -4,10 +4,10 @@
 #' This code generates a SummarizedExperiment from a matrix of RNAseq counts.
 #' It can be reused for other projects but modifying some parts, highlighted with ##
 #' Things to take into account:
-#' - Genes annotation is loaded from gff file. 
+#' - Genes annotation is loaded from gff file.
 #' - Counts data is expected to come from gene quantification.
 #' - Sample names is counts is corrected to match pheno names.
-#' - Keep genes with more than 0.5 cpm in more than 5 samples 
+#' - Keep genes with more than 0.5 cpm in more than 5 samples
 #'#################################################################################
 #'#################################################################################
 
@@ -36,6 +36,9 @@ counts <- counts[-grep("N_", rownames(counts)), ]
 colnames(counts) <- gsub(".", "", fixed = TRUE, colnames(counts))
 colnames(counts) <- gsub("X", "", fixed = TRUE, colnames(counts))
 
+
+## Remove sample with T21
+counts <- counts[, colnames(counts) != "G3CS5CO"]
 #'#################################################################################
 #'#################################################################################
 
@@ -43,7 +46,7 @@ colnames(counts) <- gsub("X", "", fixed = TRUE, colnames(counts))
 counts <- data.matrix(counts)
 
 ### Add colnames to annotation
-colnames(annot) <- c("seqname", "source", "feature", "start", "end", "score", 
+colnames(annot) <- c("seqname", "source", "feature", "start", "end", "score",
                      "strand", "frame", "attribute")
 
 ### Select only exons
@@ -61,8 +64,8 @@ names(annotGR) <- annotGR$geneID
 rownames(pheno) <- pheno$SampleID
 
 ### Create SummarizedExperiment
-rse <- SummarizedExperiment(assays = list(counts = counts), 
-                            rowRanges = annotGR[rownames(counts)], 
+rse <- SummarizedExperiment(assays = list(counts = counts),
+                            rowRanges = annotGR[rownames(counts)],
                             colData = pheno[colnames(counts), ])
 save(rse, file = "RNAseq_RangedSE_allGenes.Rdata")
 
