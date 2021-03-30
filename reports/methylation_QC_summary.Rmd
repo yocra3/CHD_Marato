@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ```{r, echo = FALSE}
 library(minfi)
-vers <- "v3"
+vers <- "v5"
 QC_folder <- paste0("../results/methylation/QC_intermediate/", vers)
 final_folder <- paste0("../results/methylation/finalQC_files/", vers)
 ```

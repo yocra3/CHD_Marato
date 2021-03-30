@@ -18,11 +18,14 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 library(ggplot2)
 library(SummarizedExperiment)
 
-pheno_vers <- "v1/"
-rnaseq_vers <- "v1/"
+pheno_vers <- "v3/"
+rnaseq_vers <- "v3/"
 
 ## load files
 load(paste0("../results/phenotypes/", pheno_vers, "pheno.Rdata"))
+
+## Remove G3CS5CO
+pheno <- subset(pheno, SampleID != "G3CS5CO")
 
 final_folder <- paste0("../results/RNAseq/Bioc_objects/", rnaseq_vers)
 load(paste0(final_folder, "RNAseq_RangedSE_autosomicGenes.Rdata"))
@@ -96,15 +99,15 @@ The differences in the proportion of controls is not statistically significant.
 
 ```{r}
 rbind(c("RNAseq", " ", " "),
-      getSum(rse$pathGroup, type = "categorical"),
+      getSum(rse$pathClass, type = "categorical"),
       c("Whole dataset", " ", " "),
-      getSum(pheno$pathGroup, type = "categorical"))
+      getSum(pheno$pathClass, type = "categorical"))
 ```
 
 As in the whole dataset, groups G2 and G4 comprised most of the samples. Groups G1 and G5 are only represented with one sample each.
 
 ```{r}
-fisher.test(rbind(table(rse$pathGroup), table(pheno$pathGroup)))
+fisher.test(rbind(table(rse$pathClass), table(pheno$pathClass)))
 ```
 
 The proportions of samples in each pathologic group is similar to the whole dataset.
@@ -121,7 +124,7 @@ rbind(c("RNAseq", " ", " "),
 The proportion of samples with identified genetic cause is similar for RNAseq samples than in the whole dataset.
 
 ```{r}
-fisher.test(rbind(table(rse$GeneticCause), table(pheno$GeneticCause)))
+#fisher.test(rbind(table(rse$GeneticCause), table(pheno$GeneticCause)))
 ```
 
 We did not find differences either for this variables between RNAseq and the whole dataset.

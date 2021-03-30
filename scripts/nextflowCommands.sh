@@ -50,9 +50,13 @@ nextflow run yocra3/CHD_Marato/workflows/RNAseq_VariantCalling.nf \
 --inFold results/RNAseq/alignment/v2/ --version v1
 
 ## Run splicing aberrations FRASER
-nextflow run yocra3/CHD_Marato/workflows/RNAseq_splice_aberrations_FRASER.nf \
---bamFold results/RNAseq/alignment/v2/ --phenoPath results/phenotypes/v2/pheno.Rdata \
---version v1 --cores 15
+nextflow run workflows/RNAseq_splice_aberrations_FRASER.nf \
+--bamFold results/RNAseq/alignment/v2/ --phenoPath results/phenotypes/v3/pheno.Rdata \
+--version v2 --cores 10 -resume
+
+## Plot splicing aberrations FRASER
+nextflow run workflows/RNAseq_plot_splice_aberrations_FRASER.nf --bams results/RNAseq/sortAlignment/v1 \
+--fraserFold results/RNAseq/FRASER_splicing_aberrations/v2/ --version v2 -resume
 
 ## CNV calling
 nextflow run yocra3/CHD_Marato/workflows/callCNVs.nf --bams "data/WGS/BAMS/*.bam" \

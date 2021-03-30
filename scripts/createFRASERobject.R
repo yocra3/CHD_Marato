@@ -28,16 +28,20 @@ bamsdf <- data.frame(bamFile = bams, stringsAsFactors = FALSE) %>%
          sampleID = gsub("-", "", sampleT)) %>%
   select(bamFile, sampleID)
 
+
+## Remove G3CS5CO -> Sample with T21
+bamsdf <- bamsdf[bamsdf$sampleID != "G3CS5CO", ]
+
 colData <- pheno %>%
   mutate(sampleID = SampleID) %>%
   right_join(bamsdf, by = "sampleID")
 
-settings <- FraseRDataSet(colData = DataFrame(colData), 
+settings <- FraseRDataSet(colData = DataFrame(colData),
                           workingDir = ".")
 
 
 ## Generate FRASER object
-fds <- countRNAData(settings, NcpuPerSample = cores, countDir = ".")
+fds <- countRNAData(settings, NcpuPerSample = cores, countDir = ".", BPPARAM = SerialParam())
 
 ## Compute PSI values
 fds <- calculatePSIValues(fds)

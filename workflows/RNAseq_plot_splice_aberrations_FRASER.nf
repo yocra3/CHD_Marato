@@ -30,9 +30,9 @@ bams = Channel.fromPath("${params.bams}/*.bam")
 bais = Channel.fromPath("${params.bams}/*.bam.bai")
 
 // Select containers
-container_R = 'yocra3/rsession_chd_marato:release-1.2.4'
-container_ubuntu = 'yocra3/ubuntu_genomicutils:release-0.99.4'
-container_ggSashimi = 'guigolab/ggsashimi'
+container_R = 'yocra3/rsession_chd_marato:release-1.2.5'
+container_ubuntu = 'yocra3/ubuntu_genomicutils:release-0.99.5'
+container_ggSashimi = 'guigolab/ggsashimi:0.5.0'
 
 // Store workflow info
 workflowInfo = """

@@ -20,8 +20,8 @@ library(cowplot)
 library(ggplot2)
 library(dplyr)
 
-RNA_vers <- "v2/"
-methy_aberr_vers <- "v3/"
+RNA_vers <- "v3/"
+methy_aberr_vers <- "v5/"
 
 RNA_folder <- paste0("../results/RNAseq/Bioc_objects/", RNA_vers)
 outrider_folder <- paste0("../results/RNAseq/OUTRIDER_aberrations/", RNA_vers)
@@ -69,7 +69,7 @@ allres <- Reduce(rbind, allres)
 sigRes <- subset(allres, pValue < 0.05) %>% arrange(pValue)
 ```
 
-We restricted our search to genes close to epigenetic alterations reported in the methylation array data. We found 6 outlier genes nominally significant:
+We restricted our search to genes close to epigenetic alterations reported in the methylation array data. We found 2 outlier genes nominally significant:
 
 ```{r}
 sigRes
@@ -85,33 +85,29 @@ plotRow <- function(sample, gene) {
 ```
 
 
-Two outlier genes belonged to case samples (G5CS6CO and G4CS8CO) and the remaining to two control samples (G3CS1CO and G3CS5CO). 
+Two outlier genes belonged to individual G4CS8CO.
 
-G3CS1CO presented a region with higher methylation in TTC23 promoter while it presents a lower expression for this gene than expected:
 
-```{r}
-plotRow("G3CS1CO", "ENSG00000103852.13_7")
-```
-
-G4CS8CO presented a region with higher methylation in COL6A promoter while it presents a lower expression for this gene than expected:
+G4CS8CO presented a region with higher methylation in COL6A1 promoter while it presents a lower expression for this gene than expected:
 
 ```{r}
 plotRow("G4CS8CO", "ENSG00000142156.15_3")
 ```
 
-Outlier genes of G5CS6CO and G3CS5CO were very far from a methylation aberration, so we did not consider it.
+The other outlier gene was close to an epimutation that was not very clear.
+
+```{r}
+plotRow("G4CS8CO", "ENSG00000197136.4_3")
+```
 
 # Genes close to candidate variants
 
 We explored whether genes close to candidate genetic variants were outliers.
 
 ```{r}
-vars <- ods.res$Pos
-names(vars) <- ods.res$SampleID
-vars <- vars[!is.na(vars)]
-vars <- strsplit(vars, "/")
-varsGR <- GRanges(unlist(vars))
-varsGR$SampleID <- rep(names(vars), lengths(vars))
+vars <- read.delim("../results/SNVs/prioritizedSNVsTable.tab", header = TRUE)
+varsGR <- GRanges(vars$"Coordinates..GRCh37.")
+varsGR$SampleID <- vars$ID
 
 varOutliers <- function(index, varRange, outrider, geneRanges, window){
   
@@ -122,14 +118,22 @@ varOutliers <- function(index, varRange, outrider, geneRanges, window){
   
 }
 
-varRes <- lapply(seq_len(length(varsGR)), varOutliers, varRange = varsGR,
+varResL <- lapply(seq_len(length(varsGR)), varOutliers, varRange = varsGR,
                  outrider = outres, geneRanges = GRgenes, window = 100e3)
-varRes <- Reduce(rbind, varRes)
+varRes <- Reduce(rbind, varResL)
+varRes$Variant.type <- rep(vars$Variant.type, sapply(varResL, nrow))
 varRessig <- subset(varRes, pValue < 0.05) %>% unique() %>% arrange(pValue)
-varRessig
+subset(varRessig, Variant.type != "Missense")
 ```
 
-Only four genes were nominally significant and close to a candidate genetic variant. These genes corresponded to two samples (G2CS6CO and G4CS8CO). Outlier genes for G2CS6CO were far from the candidate variants. For G4CS8CO, one outlier gene was far from the variant but another outlier gene matched the gene with a candidate variant:
+We first examined the effect of CNVs in expression. 7 outlier genes (at p-value < 0.05) were proximal to a CNV. From this list, we selected 4 CNVs where the gene and the CNV overlapped (G2CS13CO, G2CS6CO, G2CS2CO  and G4CS13CO). In all these cases, the CNV was coherent with the effect in transcription. 
+
+```{r}
+subset(varRessig, Variant.type == "Missense")
+```
+
+
+Next, we evaluated the four genes were nominally significant and close to a candidate genetic variant. These genes corresponded to two samples (G2CS6CO and G4CS8CO). Outlier genes for G2CS6CO did not match the gene of the candidate variants. For G4CS8CO, only one outlier gene matched the gene with a candidate variant:
 
 ```{r}
 plotRow("G4CS8CO", "ENSG00000142611.17_4")

@@ -23,8 +23,8 @@ pheno = file("${params.phenoPath}")
 cpus = params.cores
 
 // Select containers
-container_ubuntu = 'yocra3/ubuntu_genomicutils:release-0.99.4'
-container_R = 'yocra3/rsession_chd_marato:release-1.2.4'
+container_ubuntu = 'yocra3/ubuntu_genomicutils:release-0.99.5'
+container_R = 'yocra3/rsession_chd_marato:release-1.2.5'
 
 
 // Store workflow info

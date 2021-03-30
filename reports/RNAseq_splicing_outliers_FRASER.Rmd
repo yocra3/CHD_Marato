@@ -21,7 +21,7 @@ library(ggplot2)
 library(dplyr)
 library(VariantAnnotation)
 
-splicing_vers <- "v1/"
+splicing_vers <- "v2/"
 cnv_vers <- "v1/"
 
 cnv_folder <- paste0("../results/CNVs/", cnv_vers)
@@ -286,7 +286,7 @@ This aberration is also likely to be an artifact. There are no variants in the r
 
 ## G4CS3CO
 
-```{r}
+```{r, eval = FALSE}
 sampGR <- GRanges(subset(map, id == "G4CS3CO")$range)
 seqlevelsStyle(sampGR) <- "UCSC"
 vars <- readVcf(paste0(snv_folder, "62422150_S5.vcf.gz"),
