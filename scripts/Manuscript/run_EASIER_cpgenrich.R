@@ -7,6 +7,7 @@
 
 ## Load libraries
 library(EASIER)
+library(tidyverse)
 
 ## Read CpGs ####
 load("results/methylation/Episignatures/cohort.training.Rdata")
@@ -42,3 +43,39 @@ CPDB_enrich <- lapply(names(geneUniv), function( data, accFSet, genes ) {
          accType=acType,
          outputdir = NULL)},
   accFSet = acFSet, genes = geneUniv)
+
+# Regions enrichment ####
+unsignif_df <- get_annotation_unlisted_CpGs(cpgs$rs_number, "EPIC" )
+cpgs$signif <- 'yes'
+unsignif_df$signif <- 'no'
+cpgs <- rbind(cpgs[,c(2:47, 50)], as.data.frame(unsignif_df) )
+cpgs$rs_number <- cpgs$Name
+
+# Get descriptives
+get_descriptives_GenePosition(cpgs$UCSC_RefGene_Group, cpgs$signif , "CpGlist", 
+                              outputdir = paste0(outdir, "GenePosition/Fisher_CpGlist/"), 
+                              outputfile =file)
+GenePosition <- getAllFisherTest(cpgs$signif, cpgs$UCSC_RefGene_Group, 
+                                 outputdir = paste0(outdir, "GenePosition/Fisher_CpGlist/"), 
+                                 outputfile = file,
+                                 plots = TRUE )
+GenePosition %>%
+  filter(Data != "ExonBnd") %>%
+  mutate(OR = as.numeric(OR),
+         OR.inf = as.numeric(OR.inf),
+         OR.sup = as.numeric(OR.sup),
+         Positions = factor(Data, levels = c("TSS1500", "TSS200","5'UTR", "1stExon", "Body", "3'UTR"))) %>%
+  ggplot(aes(x = Positions, y = OR)) + 
+  geom_bar(stat = "identity", fill = "steelblue1", width = 0.5) +
+  geom_errorbar(aes(ymin = OR.inf, ymax = OR.sup), width = 0.2) + 
+  scale_y_continuous(trans = "log2", 
+                   breaks = scales::trans_breaks("log2", function(x) round(2^x, 2))) +
+  theme_classic(base_size = 20) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  geom_hline(yintercept = 1) + xlab("Gene position")
+
+
+plot_GenePosition(GenePosition, 
+                  outputdir = paste0(outdir, "GenePosition/Fisher_CpGlist/"), 
+                  outputfile = paste0("CpGlist_",file), main = )
+

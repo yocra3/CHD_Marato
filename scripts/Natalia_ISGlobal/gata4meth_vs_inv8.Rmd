@@ -1,0 +1,102 @@
+---
+title: "Methylation GATA4 vs inversions"
+author: "Carlos Ruiz"
+date: "6/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Objective
+
+Test differences in GATA4 DNA methylation due to inv8p23.1 genotypes.
+
+# Load data
+
+```{r}
+library(minfi)
+library(limma)
+library(dplyr)
+library(scoreInvHap)
+library(ggplot2)
+library(cowplot)
+
+load("../../results/methylation/finalQC_files/2021-03-08/gset.autosomic.Rdata")
+gata4_cpgs <- read.table("../../data/Natalia_cpgs_gata4.txt")$V1
+load("../../scripts/Natalia_ISGlobal/inv8Genos.scoreInvHap.Rdata")
+```
+
+# Add inversions to methylation
+```{r}
+inv8class <- classification(inv8sc)
+gset$inv8 <- factor(inv8class[colnames(gset)], levels = c("NN", "NI", "II"))
+gset$inv8add <- as.numeric(gset$inv8) - 1
+table(gset$inv8)
+table(gset$inv8, gset$Status)
+
+```
+
+
+# Methylation vs inv8
+
+Explore association between the inversion and the methylation. Adjust for sex and CHD status.
+
+```{r}
+model <- model.matrix(~ inv8add + Sex + Status, colData(gset))
+lmfit <- lmFit(getBeta(gset[, rownames(model)]), design = model)
+lmFite <- eBayes(lmfit)
+tab <- topTable(lmFite, n = Inf, coef = 2)
+tab$P.adj2 <- p.adjust(tab$P.Value)
+
+```
+```{r}
+tab[rownames(tab) %in% gata4_cpgs, ]
+```
+
+Only two CpGs significantly different (P.adj2 < 0.05)
+
+```{r}
+mapCpgs <- gata4_cpgs[gata4_cpgs %in% rownames(gset)]
+
+a <- lapply(mapCpgs, function(cpg){
+  df <- data.frame(methy = as.vector(getBeta(gset[cpg, ])), inv =  gset$inv8, row.names = NULL)
+  df <- df[!is.na(df$inv), ]
+  ggplot(df, aes(x = inv, y = methy)) + 
+    geom_boxplot() +
+    ggtitle(cpg)
+})
+plot_grid(plotlist = a[1:12], nrow = 3, ncol = 4)
+plot_grid(plotlist = a[13:20], nrow = 3, ncol = 4)
+
+```
+
+# Methylation vs interaction inv8 + CHD status
+
+```{r}
+model2 <- model.matrix(~ inv8add*Status + Sex, colData(gset))
+lmfit2 <- lmFit(getBeta(gset[, rownames(model2)]), design = model2)
+lmFite2 <- eBayes(lmfit2)
+tab2 <- topTable(lmFite2, n = Inf, coef = 5)
+tab2$P.adj2 <- p.adjust(tab2$P.Value)
+tab2[rownames(tab2) %in% gata4_cpgs, ]
+```
+
+Three CpGs show a significant interaction (P.adj2 < 0.05)
+
+```{r}
+
+b <- lapply(mapCpgs, function(cpg){
+  df <- data.frame(methy = as.vector(getBeta(gset[cpg, ])), inv =  gset$inv8, 
+                   status = gset$Status, row.names = NULL)
+  df <- df[!is.na(df$inv), ]
+  ggplot(df, aes(x = inv, y = methy)) + 
+    geom_boxplot() +
+    ggtitle(cpg) +
+    facet_grid(~ status)
+})
+plot_grid(plotlist = b[1:12], nrow = 3, ncol = 4)
+plot_grid(plotlist = b[13:20], nrow = 2, ncol = 4)
+```
+
