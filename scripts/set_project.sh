@@ -51,6 +51,7 @@ mkdir results/methylation/QC_intermediate
 mkdir results/methylation/finalQC_files
 mkdir results/methylation/SNPs
 mkdir results/methylation/Episignatures
+mkdir results/G2CS2CO
 
 mkdir scripts
 mkdir workflows

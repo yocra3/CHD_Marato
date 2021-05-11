@@ -45,6 +45,13 @@ nextflow run workflows/RNAseq_aberrations_OUTRIDER.nf \
 -with-docker yocra3/rsession_chd_marato:release-1.2.5  \
 --version v3
 
+
+## Run OUTRIDER with chromosome X
+nextflow run workflows/RNAseq_aberrations_OUTRIDER.nf \
+--rangedSE results/RNAseq/Bioc_objects/v3/RNAseq_RangedSE_expressedGenes.Rdata \
+-with-docker yocra3/rsession_chd_marato:release-1.2.5  \
+--version v4
+
 ## RNAseq variant calling
 nextflow run yocra3/CHD_Marato/workflows/RNAseq_VariantCalling.nf \
 --inFold results/RNAseq/alignment/v2/ --version v1

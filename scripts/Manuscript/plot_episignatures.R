@@ -13,6 +13,7 @@ library(cowplot)
 library(minfi)
 library(DESeq2)
 library(dendextend)
+library(limma)
 
 # Load data ####
 # Methylation 
@@ -131,3 +132,5 @@ colPlot <- cols[gset$pathClass]
 heatmap(mat_lit, scale = "none", 
         col = gray.colors(100, start = 0, end = 1),
         ColSideColors = colPlot, cexCol = 2)                   
+
+
