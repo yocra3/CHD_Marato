@@ -13,7 +13,9 @@ load("results/methylation/finalQC_files/2021-03-08/gset.autosomic.Rdata")
 gata4_cpgs <- read.table("data/Natalia_cpgs_gata4.txt")$V1
 
 ## Test difference in methylation in CpGs detected by Natalia ####
-model <- model.matrix(~ Status + Sex, colData(gset))
+pheno <- colData(gset)
+pheno$Status <- factor(pheno$Status , levels = c("Control", "Case"))
+model <- model.matrix(~ Status + Sex, pheno)
 lmfit <- lmFit(getBeta(gset), design = model)
 lmFite <- eBayes(lmfit)
 tab <- topTable(lmFite, n = Inf, coef = 2)

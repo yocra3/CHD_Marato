@@ -27,7 +27,9 @@ gata4_cpgs <- read.table("../../data/Natalia_cpgs_gata4.txt")$V1
 # Run linear model
 
 ```{r}
-model <- model.matrix(~ Status + Sex, colData(gset))
+pheno <- colData(gset)
+pheno$Status <- factor(pheno$Status , levels = c("Control", "Case"))
+model <- model.matrix(~ Status + Sex, pheno)
 lmfit <- lmFit(getBeta(gset), design = model)
 lmFite <- eBayes(lmfit)
 tab <- topTable(lmFite, n = Inf, coef = 2)
