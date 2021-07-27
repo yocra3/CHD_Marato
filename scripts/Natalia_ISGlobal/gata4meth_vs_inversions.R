@@ -10,7 +10,7 @@ library(GenomicRanges)
 library(VariantAnnotation)
 library(ggplot2)
 library(cowplot)
-
+library(limma)
 # Load methylation ####
 load("results/methylation/finalQC_files/2021-03-08/gset.autosomic.Rdata")
 gata4_cpgs <- read.table("data/Natalia_cpgs_gata4.txt")$V1
@@ -40,6 +40,7 @@ save(inv8sc, file = "scripts/Natalia_ISGlobal/inv8Genos.scoreInvHap.Rdata")
 
 
 ## Test difference in methylation in CpGs detected by Natalia ####
+load("scripts/Natalia_ISGlobal/inv8Genos.scoreInvHap.Rdata")
 inv8class <- classification(inv8sc)
 gset$inv8 <- factor(inv8class[colnames(gset)], levels = c("NN", "NI", "II"))
 gset$inv8add <- as.numeric(gset$inv8) - 1
